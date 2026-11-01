@@ -14,7 +14,7 @@ Priority: `P0` blocks the current phase gate · `P1` next · `P2` scheduled · `
 
 ## P1: next phase work
 
-- [~] `P1` Offline app shell: service worker registered in production builds (`apps/web/public/sw.js`). Verified offline in Chromium through Playwright (`e2e/offline.spec.ts`): the editor reopens with the server unreachable. Not yet checked in the built-in pane, which refused the registration. Placement moves, adds and removes queue offline in an outbox (ADR-0011, Proposed). Adding from the plant library offline is not built yet.
+- [~] `P1` Offline app shell: service worker registered in production builds (`apps/web/public/sw.js`). Verified offline in Chromium through Playwright (`e2e/offline.spec.ts`): the editor reopens with the server unreachable. Not yet checked in the built-in pane, which refused the registration. Placement moves, adds and removes queue offline in an outbox (ADR-0011, Proposed). Species opened online can be added offline (profiles are cached on this device).
 - [ ] `P1` Companion mechanism table: evidence grades and citations for every edge; add effect sizes where published (curation).
 - [ ] `P1` Sun and shadow engine: compute hours of direct sun per placement from site geometry (Phase 2). Blocked on Q1 in HANDOVER.
 - [x] `P1` Feedback log with reason tags and a deterministic router (ADR-0007; I7). The form is in Plant details, and `feedback.list` shows the routes.

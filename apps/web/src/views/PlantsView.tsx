@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { call, type SpeciesSummary } from '../api';
+import { type Envelope, type SpeciesSummary } from '../api';
 import { GUILD_COLORS } from '../model';
 
 /** Everything the knowledge graph says about one species, with its sources and grades. */
@@ -22,10 +22,12 @@ interface Profile {
 export interface PlantsViewProps {
   species: SpeciesSummary[];
   onAdd: (urn: string) => void;
+  /** Loads a species profile, from the server or from this device's copy when offline. */
+  fetchProfile: (urn: string) => Promise<Envelope<unknown>>;
 }
 
 /** The plant library window: search and filter the graph, then read a profile. */
-export function PlantsView({ species, onAdd }: PlantsViewProps) {
+export function PlantsView({ species, onAdd, fetchProfile }: PlantsViewProps) {
   const [query, setQuery] = useState('');
   const [layer, setLayer] = useState('');
   const [family, setFamily] = useState('');
@@ -49,15 +51,21 @@ export function PlantsView({ species, onAdd }: PlantsViewProps) {
       return;
     }
     let cancelled = false;
-    call<Profile>('plants.get_profile', { urn: selectedUrn }).then((envelope) => {
-      if (cancelled) return;
-      if (envelope.ok && envelope.data) {
-        setProfile(envelope.data);
-        setError(null);
-      } else {
-        setError(envelope.error?.message ?? 'Could not load this plant.');
-      }
-    });
+    fetchProfile(selectedUrn).then(
+      (envelope) => {
+        if (cancelled) return;
+        const data = envelope.data as Profile | undefined;
+        if (envelope.ok && data) {
+          setProfile(data);
+          setError(null);
+        } else {
+          setError(envelope.error?.message ?? 'Could not load this plant.');
+        }
+      },
+      (failure: unknown) => {
+        if (!cancelled) setError(failure instanceof Error ? failure.message : 'Could not load this plant.');
+      },
+    );
     return () => {
       cancelled = true;
     };

@@ -97,3 +97,29 @@ test.describe('J3 writes offline (ADR-0011)', () => {
     await expect(status).toContainText('healthy');
   });
 });
+
+test.describe('J3 adds from the plant library offline (ADR-0011)', () => {
+  test('a species opened online can be added offline and reaches the server once', async ({ page, context, request, baseURL }) => {
+    await page.goto('/#/plants');
+    await expect(page.getByRole('heading', { level: 1, name: 'Plant library' })).toBeVisible();
+    // Open the profile while online, so this device keeps a copy of it.
+    await page.getByPlaceholder('Name or family').fill('lavender');
+    await page.getByRole('button', { name: /lavender/i }).first().click();
+    await expect(page.getByRole('button', { name: 'Add to plan' })).toBeVisible();
+    const beforeDesign = await serverDesign(request, baseURL);
+
+    await context.setOffline(true);
+    await page.getByRole('button', { name: 'Add to plan' }).click();
+    await expect(page.getByRole('heading', { level: 1, name: 'Plan' })).toBeVisible();
+    const status = page.getByRole('status', { name: 'Data status' });
+    await expect(status).toContainText('1 waiting to sync');
+    await expect(page.locator('.selection-strip')).toContainText(/lavender/i);
+
+    await context.setOffline(false);
+    await expect(status).not.toContainText('waiting to sync', { timeout: 30_000 });
+    const afterDesign = await serverDesign(request, baseURL);
+    expect(afterDesign.placements.length).toBe(beforeDesign.placements.length + 1);
+    expect(afterDesign.seq).toBe(beforeDesign.seq + 1);
+    expect(new Set(afterDesign.placements.map((p) => p.id)).size).toBe(afterDesign.placements.length);
+  });
+});

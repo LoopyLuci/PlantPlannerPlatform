@@ -165,6 +165,24 @@ export function App() {
     setQueued(entries);
   }, []);
 
+  /**
+   * A species profile from the server, kept on this device for offline use. Offline, the last copy
+   * seen here is returned; a species never opened online has no copy and stays unavailable.
+   */
+  const fetchProfile = useCallback(async (urn: string): Promise<Envelope<unknown>> => {
+    const key = `profile:${urn}`;
+    try {
+      const envelope = await call<unknown>('plants.get_profile', { urn });
+      if (envelope.ok) await outboxRef.current?.putMeta(key, envelope);
+      return envelope;
+    } catch (error) {
+      if (!(error instanceof ApiUnreachableError)) throw error;
+      const cached = await outboxRef.current?.getMeta<Envelope<unknown>>(key);
+      if (cached) return cached;
+      throw error;
+    }
+  }, []);
+
   /** Default footprint for a species, the same default the server uses when none is given. */
   const footprintOf = useCallback((urn: string) => speciesRef.current.find((s) => s.urn === urn)?.traits.plantingSpacingM ?? 0.5, []);
 
@@ -795,7 +813,13 @@ export function App() {
       );
       break;
     case 'plants':
-      content = <PlantsView species={species} onAdd={(urn) => void addSpecies(urn).then(() => navigate('plan'))} />;
+      content = (
+        <PlantsView
+          species={species}
+          onAdd={(urn) => void addSpecies(urn).then(() => navigate('plan'))}
+          fetchProfile={fetchProfile}
+        />
+      );
       break;
     case 'placements':
       content = (
