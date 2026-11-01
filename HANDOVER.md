@@ -38,7 +38,7 @@ end of every session, not the start.
 ## Known issues
 
 - **Stale server on port 4010.** It runs code from before this session's capability changes. Restart it (`Ctrl+C`, then `npm start`) before using `feedback.record` or `feedback.list`.
-- The built-in browser pane refused service-worker registration. The offline shell is verified in Chromium through Playwright (`e2e/offline.spec.ts`), not in the pane. Writes while offline and the outbox are not built.
+- The built-in browser pane refused service-worker registration. The offline shell is verified in Chromium through Playwright (`e2e/offline.spec.ts`), not in the pane. Placement moves, adds and removes queue offline (ADR-0011, Proposed). Adding a species from the plant library offline is not built, because the species profile is not cached.
 - **Local pipeline hook not installed.** `npm run ci:hooks` (a pre-push hook through `core.hooksPath`) was denied by the automation classifier as a persistence change. It is not installed. The owner can run it, or approve it in the session. Until then, run `npm run ci` before pushing.
 - The local pipeline does not regenerate the archive; it verifies the committed checksums. The GitHub workflow still regenerates and checks. A decision is needed on whether CI should call `npm run ci` so the two cannot drift.
 - End-to-end tests run in CI as the `e2e` job (Ubuntu, Node 24). The first CI run had not been checked when this line was written; check it before relying on it.
@@ -82,7 +82,7 @@ end of every session, not the start.
 - Browser (built-in pane, desktop and 375 px): 3D view draws the starter garden; a drag saved one write (seq 21, then 22) and the store returned the new position; the camera did not orbit; the side elevation toggles axis; the WebGL fallback appears when `getContext` returns null; the Details feedback form renders and shows the stale server's error message; 200 plants: 2 instanced draws per frame, median frame 16.8 ms while zooming; no horizontal scroll at 375 px.
 - `npm run e2e` (Playwright, Edge, fresh scratch data on port 4411): 4 tests passed. J1 place, correct by keyboard and reload; J5 search and profile; feedback recorded and routed; offline shell reopens with the server down.
 - `npm run perf:3d` (headless Chromium, this machine, 200 plants): median frame 16.7 ms (59.9 fps), worst frame 16.8 ms over 180 frames while orbiting; plan-edit write acknowledged in a median of 12 ms. Headless frames may be capped at the display rate, so this shows no drops, not headroom.
-- Not verified: the 100 ms plan-to-3D render gate (the render time is not exposed); the 60 fps gate on reference hardware; J3 writes offline (not built); the 50 ms search gate in J5 (not timed).
+- Not verified: the 100 ms plan-to-3D render gate (the render time is not exposed); the 60 fps gate on reference hardware; adding from the library offline (not built); a conflict in the browser (unit-tested only); the 50 ms search gate in J5 (not timed).
 
 ## Session log (most recent first)
 

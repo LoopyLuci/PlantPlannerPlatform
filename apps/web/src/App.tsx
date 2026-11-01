@@ -1,5 +1,6 @@
 import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
+  ApiUnreachableError,
   type CandidateView,
   type DesignSummary,
   type DesignView,
@@ -11,6 +12,16 @@ import {
   call,
   newKey,
 } from './api';
+import {
+  type OutboxEntry,
+  type SendResult,
+  applyAll,
+  applyEntry,
+  drainOutbox,
+  isOutboxCapability,
+  newPlacementId,
+} from './outbox/logic';
+import { type OutboxStore, openOutbox } from './outbox/store';
 import { type LayerState } from './Canvas';
 import { Checklist } from './Checklist';
 import { Nav } from './Nav';
@@ -91,10 +102,18 @@ export function App() {
   const [health, setHealth] = useState<string>('checking');
   const [version, setVersion] = useState<string>('');
   const [suggestions, setSuggestions] = useState<SuggestionView | null>(null);
+  // Offline state (ADR-0011): the editor shows the copy saved on this device, and queued changes wait here.
+  const [offline, setOffline] = useState(false);
+  const [queued, setQueued] = useState<OutboxEntry[]>([]);
 
   // Refs hold the latest design for async work, so closures never act on a stale copy.
   const designRef = useRef<DesignView | null>(null);
   const writeQueue = useRef<Promise<unknown>>(Promise.resolve());
+  const outboxRef = useRef<OutboxStore | null>(null);
+  const offlineRef = useRef(false);
+  const queuedRef = useRef<OutboxEntry[]>([]);
+  const speciesRef = useRef<SpeciesSummary[]>([]);
+  const syncing = useRef(false);
   const nudge = useRef<{ id: string; origin: Point; timer: number | null } | null>(null);
 
   const speciesByUrn = useMemo(() => new Map(species.map((s) => [s.urn, s])), [species]);
@@ -136,27 +155,68 @@ export function App() {
     [dismiss],
   );
 
+  const setOfflineState = useCallback((value: boolean) => {
+    offlineRef.current = value;
+    setOffline(value);
+  }, []);
+
+  const setQueuedState = useCallback((entries: OutboxEntry[]) => {
+    queuedRef.current = entries;
+    setQueued(entries);
+  }, []);
+
+  /** Default footprint for a species, the same default the server uses when none is given. */
+  const footprintOf = useCallback((urn: string) => speciesRef.current.find((s) => s.urn === urn)?.traits.plantingSpacingM ?? 0.5, []);
+
+  /**
+   * Loads the design from the server and caches it. When the server cannot be reached, shows the
+   * cached copy with the queued changes applied, so offline work survives a reload.
+   */
   const loadDesign = useCallback(
     async (id: string): Promise<DesignView> => {
-      const [detail, verdicts] = await Promise.all([
-        call<DesignView>('design.get', { design_id: id }),
-        call<EvaluationView>('design.evaluate', { design_id: id }),
-      ]);
-      if (!detail.ok || !detail.data) throw new Error(detail.error?.message ?? 'Could not load the design.');
-      designRef.current = detail.data;
-      setDesign(detail.data);
-      setOverrides({});
-      if (verdicts.ok && verdicts.data) setEvaluation(verdicts.data);
-      noteVersion(detail);
-      return detail.data;
+      try {
+        const [detail, verdicts] = await Promise.all([
+          call<DesignView>('design.get', { design_id: id }),
+          call<EvaluationView>('design.evaluate', { design_id: id }),
+        ]);
+        if (!detail.ok || !detail.data) throw new Error(detail.error?.message ?? 'Could not load the design.');
+        const evaluationData = verdicts.ok && verdicts.data ? verdicts.data : null;
+        await outboxRef.current?.putDesign({ design: detail.data, evaluation: evaluationData, savedAt: new Date().toISOString() });
+        const queuedNow = outboxRef.current ? await outboxRef.current.list() : [];
+        setQueuedState(queuedNow);
+        const shown = applyAll(detail.data, queuedNow, footprintOf);
+        setOfflineState(false);
+        setHealth('healthy');
+        designRef.current = shown;
+        setDesign(shown);
+        setOverrides({});
+        if (evaluationData) setEvaluation(evaluationData);
+        noteVersion(detail);
+        return shown;
+      } catch (error) {
+        if (!(error instanceof ApiUnreachableError)) throw error;
+        const cached = await outboxRef.current?.getDesign(id);
+        if (!cached) throw error;
+        const queuedNow = await outboxRef.current!.list();
+        setQueuedState(queuedNow);
+        const shown = applyAll(cached.design, queuedNow, footprintOf);
+        setOfflineState(true);
+        setHealth('unreachable');
+        designRef.current = shown;
+        setDesign(shown);
+        setEvaluation(cached.evaluation);
+        setOverrides({});
+        return shown;
+      }
     },
-    [noteVersion],
+    [footprintOf, noteVersion, setOfflineState, setQueuedState],
   );
 
   const refreshDesigns = useCallback(async (): Promise<DesignSummary[]> => {
     const listed = await call<{ designs: DesignSummary[] }>('design.list', {});
     if (!listed.ok || !listed.data) throw new Error(listed.error?.message ?? 'Could not list designs.');
     setDesigns(listed.data.designs);
+    await outboxRef.current?.putMeta('designs', listed.data.designs);
     return listed.data.designs;
   }, []);
 
@@ -167,10 +227,104 @@ export function App() {
   }, []);
 
   /** Runs one write against the latest design. Called only through the queue. */
+  /**
+   * Sends queued changes in order, then reloads the server copy. Runs on a timer and when the
+   * browser comes back online. Stops at the first refused change, which waits for a person.
+   */
+  const syncOutbox = useCallback(async () => {
+    const outbox = outboxRef.current;
+    const designId = designRef.current?.designId;
+    if (!outbox || !designId || syncing.current) return;
+    if (queuedRef.current.length === 0 && !offlineRef.current) return;
+    syncing.current = true;
+    try {
+      const entries = await outbox.list();
+      if (entries.length > 0) {
+        await drainOutbox(
+          entries,
+          async (entry): Promise<SendResult> => {
+            try {
+              const envelope = await call<unknown>(
+                entry.capability,
+                { design_id: entry.designId, base_seq: entry.baseSeq, ...entry.input },
+                { idempotencyKey: entry.idempotencyKey },
+              );
+              if (envelope.ok) return { kind: 'ok' };
+              if (envelope.error?.code === 'conflict') {
+                return { kind: 'conflict', message: 'The design changed on the server while this change was waiting.' };
+              }
+              return { kind: 'rejected', message: envelope.error?.message ?? 'The server refused this change.' };
+            } catch (error) {
+              if (error instanceof ApiUnreachableError) return { kind: 'unreachable' };
+              throw error;
+            }
+          },
+          {
+            accepted: async (entry) => {
+              await outbox.remove(entry.id as number);
+            },
+            refused: async (entry, message) => {
+              await outbox.update({ ...entry, state: 'conflict', note: message });
+            },
+          },
+        );
+      }
+      setQueuedState(await outbox.list());
+      await loadDesign(designId).catch(() => undefined);
+    } finally {
+      syncing.current = false;
+    }
+  }, [loadDesign, setQueuedState]);
+
+  /** Keeps a placement write on this device while the server cannot be reached. */
+  const enqueueWrite = useCallback(
+    async (capability: string, input: Record<string, unknown>, current: DesignView, options: WriteOptions): Promise<boolean> => {
+      const outbox = outboxRef.current;
+      if (!isOutboxCapability(capability)) return false;
+      if (!outbox?.available) {
+        fail('The server cannot be reached, and this browser cannot keep changes until it is back. Start the server, then try again.');
+        return false;
+      }
+      const payload = capability === 'design.add_placement' && input.placement_id === undefined ? { ...input, placement_id: newPlacementId() } : input;
+      const entry: OutboxEntry = {
+        designId: current.designId,
+        capability,
+        input: payload,
+        idempotencyKey: newKey('outbox'),
+        baseSeq: current.seq,
+        createdAt: new Date().toISOString(),
+        state: 'pending',
+      };
+      const id = await outbox.add(entry);
+      if (id === null) {
+        fail('This change could not be kept on this device.');
+        return false;
+      }
+      setQueuedState(await outbox.list());
+      const next = applyEntry(current, { ...entry, id }, footprintOf);
+      designRef.current = next;
+      setDesign(next);
+      setOverrides({});
+      if (options.announce) setAnnounce(options.announce);
+      pushToast('Saved on this device. It will sync when the server is back.');
+      void syncOutbox();
+      return true;
+    },
+    [fail, footprintOf, pushToast, setQueuedState, syncOutbox],
+  );
+
   const performWrite = useCallback(
     async (capability: string, input: Record<string, unknown>, options: WriteOptions): Promise<boolean> => {
       const current = designRef.current;
       if (!current) return false;
+      // While the server is down, or while earlier changes are waiting, placement writes queue in order.
+      if (isOutboxCapability(capability) && (offlineRef.current || queuedRef.current.length > 0)) {
+        return enqueueWrite(capability, input, current, options);
+      }
+      if (queuedRef.current.length > 0) {
+        fail('Some changes are still waiting to sync. Wait for them to sync, then try again.');
+        return false;
+      }
       try {
         const envelope: Envelope<unknown> = await call(
           capability,
@@ -195,11 +349,14 @@ export function App() {
         return false;
       } catch (error) {
         setOverrides({});
+        if (error instanceof ApiUnreachableError && isOutboxCapability(capability)) {
+          return enqueueWrite(capability, input, current, options);
+        }
         fail(error instanceof Error ? error.message : String(error));
         return false;
       }
     },
-    [fail, loadDesign, noteVersion, pushToast, refreshDesigns],
+    [enqueueWrite, fail, loadDesign, noteVersion, pushToast, refreshDesigns],
   );
 
   /** Writes run one at a time, so each one reads the sequence left by the previous one. */
@@ -216,11 +373,17 @@ export function App() {
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      outboxRef.current = await openOutbox();
+      if (!cancelled && outboxRef.current) setQueuedState(await outboxRef.current.list());
       try {
         const healthEnvelope = await call<{ status: string }>('platform.get_health', {});
         if (!cancelled) setHealth(healthEnvelope.ok && healthEnvelope.data ? healthEnvelope.data.status : 'unknown');
         const speciesEnvelope = await call<{ items: SpeciesSummary[] }>('plants.search', { limit: 100 });
-        if (!cancelled && speciesEnvelope.ok && speciesEnvelope.data) setSpecies(speciesEnvelope.data.items);
+        if (!cancelled && speciesEnvelope.ok && speciesEnvelope.data) {
+          speciesRef.current = speciesEnvelope.data.items;
+          setSpecies(speciesEnvelope.data.items);
+          await outboxRef.current?.putMeta('species', speciesEnvelope.data.items);
+        }
         const list = await refreshDesigns();
         if (list.length === 0) {
           let key = readStorage(FIRST_RUN_KEY);
@@ -237,13 +400,34 @@ export function App() {
           setDesignId(open.designId);
         }
       } catch (error) {
-        if (!cancelled) fail(error instanceof Error ? error.message : String(error));
+        if (cancelled) return;
+        if (!(error instanceof ApiUnreachableError)) {
+          fail(error instanceof Error ? error.message : String(error));
+          return;
+        }
+        // Offline start: open the design remembered on this device, from the copy saved last time.
+        const cachedDesigns = await outboxRef.current?.getMeta<DesignSummary[]>('designs');
+        const cachedSpecies = await outboxRef.current?.getMeta<SpeciesSummary[]>('species');
+        if (cancelled) return;
+        if (!cachedDesigns?.length) {
+          fail(error.message);
+          return;
+        }
+        if (cachedSpecies) {
+          speciesRef.current = cachedSpecies;
+          setSpecies(cachedSpecies);
+        }
+        setDesigns(cachedDesigns);
+        setHealth('unreachable');
+        setOfflineState(true);
+        const remembered = readStorage(LAST_DESIGN_KEY);
+        setDesignId((cachedDesigns.find((d) => d.designId === remembered) ?? cachedDesigns[0]).designId);
       }
     })();
     return () => {
       cancelled = true;
     };
-  }, [createDesign, fail, refreshDesigns]);
+  }, [createDesign, fail, refreshDesigns, setOfflineState, setQueuedState]);
 
   useEffect(() => {
     if (!designId) return;
@@ -253,6 +437,30 @@ export function App() {
     loadDesign(designId).catch((error: unknown) => fail(error instanceof Error ? error.message : String(error)));
   }, [designId, fail, loadDesign]);
 
+  // Reconnect: while changes are queued or the server is unreachable, try to sync every few seconds.
+  // Nothing is sent when the editor is online with an empty queue.
+  useEffect(() => {
+    const tick = () => void syncOutbox();
+    const timer = window.setInterval(tick, 5000);
+    window.addEventListener('online', tick);
+    return () => {
+      window.clearInterval(timer);
+      window.removeEventListener('online', tick);
+    };
+  }, [syncOutbox]);
+
+  /** Drops every queued change for the open design. A person decides this; nothing is merged. */
+  const discardQueued = useCallback(async () => {
+    const outbox = outboxRef.current;
+    const designId = designRef.current?.designId;
+    if (!outbox || !designId) return;
+    await outbox.removeDesign(designId);
+    setQueuedState(await outbox.list());
+    await loadDesign(designId).catch(() => undefined);
+    pushToast('Offline changes for this design were discarded.');
+  }, [loadDesign, pushToast, setQueuedState]);
+
+  const conflict = queued.find((entry) => entry.state === 'conflict');
   const placementStatus = (id: string) => evaluation?.placements[id]?.status ?? 'unknown';
 
   const movePlacement = useCallback(
@@ -660,10 +868,26 @@ export function App() {
           <span className={`chip chip-${health === 'healthy' ? 'pass' : health === 'checking' ? 'unknown' : 'warn'}`}>
             Local data: {health}
           </span>
+          {offline && (
+            <span className="chip chip-warn" title="The server cannot be reached. The editor shows the copy saved on this device.">
+              Offline: saved copy
+            </span>
+          )}
+          {queued.length > 0 && <span className="chip chip-warn">{queued.length} waiting to sync</span>}
           <span className="chip chip-muted" title="Versions stamped on every result">{version || 'loading versions'}</span>
         </div>
       </header>
 
+      {conflict && (
+        <div className="banner" role="alert">
+          <span>
+            A change made while offline could not be applied: {conflict.note} Later offline changes are waiting behind it.
+          </span>
+          <button type="button" className="danger-outline" onClick={() => void discardQueued()}>
+            Discard offline changes
+          </button>
+        </div>
+      )}
       {banner && (
         <div className="banner" role="alert">
           <span>{banner}</span>

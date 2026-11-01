@@ -59,8 +59,19 @@ no durable store for pending writes yet.
 
 ## Implementation notes
 
-- Start with the three placement capabilities used by J3 (`design.add_placement`,
-  `design.update_placement`, `design.remove_placement`). Extend to the rest once the path is proven.
+- **Built (2026-11-01):** the three placement capabilities (`design.add_placement`,
+  `design.update_placement`, `design.remove_placement`) are queued offline. Logic is in
+  `apps/web/src/outbox/logic.ts` (unit tests in `apps/web/test/outbox.test.ts`); storage is in
+  `apps/web/src/outbox/store.ts`; the App wires them together. The client picks the new placement id
+  (`p_` plus 12 hex) so the plant shows at once. Replay sends each change with its stored key and
+  `base_seq`, and stops at the first refusal, which is shown as a conflict with a discard action.
+- **Not built:** adding a species from the plant library while offline. The species profile is loaded
+  from the server, so it is not cached. Cache the profiles, or disable the add button offline with a
+  reason, before J3 is complete.
+- **Not tested end to end:** a refused change (conflict). The replay rule is covered by unit tests only.
+- Other writes (site, archive, feedback, undo of a removal) stay online-only. While changes are queued,
+  they are refused with a message, so they cannot be sent against a sequence that has not been replayed yet.
+- Start-up falls back to the cached species list and design list when the server is down.
 - Use IndexedDB, not `localStorage`, because entries are structured and can be large.
 - Wrap every read and write of the outbox in try/catch. If IndexedDB is unavailable, writes stay
   online-only and the UI says so.
