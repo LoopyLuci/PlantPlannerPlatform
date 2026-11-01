@@ -1,0 +1,7 @@
+{
+  "schema": "ppp-kg-1",
+  "graph_version": "kg-2026.10",
+  "status": "seed-unreviewed",
+  "license": "CC-BY-4.0",
+  "notes": "Development seed. Values are typical horticultural reference ranges entered by the maintainers and have NOT been verified against cited handbooks. Every trait is graded C until curated. Do not rely on these values for real planting decisions."
+}

@@ -1,0 +1,5 @@
+source_id,title,author,year,url,archive_url,license,citation_status,grade
+SRC-SEED,"Platform seed trait table for kg-2026.10 (unverified)","Plant Planner Platform maintainers",2026,,,CC-BY-4.0,unverified: each value must be checked against a cited handbook before curation,C
+SRC-EXT-FAMILY,"Family-level disease sharing in Solanaceae (general extension guidance)",,,,,CC-BY-4.0,needs_specific_citation,B
+SRC-EXT-GENERIC,"General extension guidance on crop competition for nutrients",,,,,CC-BY-4.0,needs_specific_citation,B
+SRC-LORE,"Traditional companion-planting lore (anecdotal or mixed evidence)",,,,,CC-BY-4.0,not_a_citable_source; grade C by definition,C

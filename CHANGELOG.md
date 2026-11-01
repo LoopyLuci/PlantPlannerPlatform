@@ -1,0 +1,51 @@
+# CHANGELOG
+
+All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Versions: [VERSIONING.md](VERSIONING.md).
+
+## [Unreleased]
+
+### Added
+- Feedback on verdicts: `feedback.record` and `feedback.list` capabilities, a hash-chained feedback log, a pure router to four suggested routes, and a form in Plant details (ADR-0007).
+- Rule thresholds in `config/rules/rules-1.0.json`, loaded at start-up and validated; `PPP_RULES_FILE` overrides the path (ADR-0008).
+- 3D view window (three.js, loaded on demand): instanced plants, drag to move (saved through the same write as the plan), and a fallback to the side elevation without WebGL (ADR-0009).
+- Side elevation window, from the south or the west, with mature heights and a keyboard-accessible plant list.
+- Offline app shell: a production-only service worker that keeps the app's files and never caches `/api/`.
+- Per-design projection cache in the store, invalidated by any write to the log file.
+- `npm run kill-test`: a process-kill test (SIGKILL at random points during writes), with a short version in `npm test`.
+- `npm run bench`: a 50-plant evaluation gate and a 200-plant timing.
+- Cold-storage readability test: reads the archive with Node only and recomputes every hash from the documented rule.
+- Archive: `feedback/feedback.ndjson`, `feedback/feedback.csv`, and `rules/rules-1.0.json`.
+- Capability registry (`packages/registry`) with 17 capabilities, validation, and JSON Schema generation. (19 after the feedback capabilities.)
+- Pure core (`packages/core`): rules engine `rules-1.0` with cited verdicts, companion score, candidate checks and suggestions; knowledge-graph loader that refuses uncited facts; design event reducer.
+- Store (`packages/store`): hash-chained append-only design logs, idempotent writes, optimistic `base_seq` guard, torn-tail quarantine, snapshots with verification, integrity report, plain-text archive export.
+- Services (`packages/services`): `dispatch()` shared by all adapters, handlers for every capability, the Starter Garden template.
+- HTTP adapter (`apps/server`): capability routes, OpenAPI document, health route, static hosting, input guards.
+- CLI adapter (`apps/cli`): flags generated from the registry, `--table` output, stable exit codes.
+- MCP adapter (`apps/mcp`): read-only stdio JSON-RPC server, 10 tools.
+- Web editor (`apps/web`): seven windows in a side navigation (Plan, Site, Plant library, Placed plants, Plant details, Designs, Data health), live verdicts, undo toasts, suggestions for a spot, and a getting-started checklist.
+- Seed knowledge graph `kg-2026.10` (`data/knowledge-graph`), status `seed-unreviewed`, with four sources and a schema document.
+- Planning and agent documents: README, AGENTS, PLAN, TODO, HANDOVER, VERSIONING, architecture, principles, data formats, glossary, ADRs 0000-0006, agent protocols, longevity audit, durability runbook.
+
+### Changed
+- The editor was split from one continuous workspace into side-navigation windows (user request).
+- `DEFAULT_RULE_CONFIG` and `RULE_CONFIG_VERSION` are removed. Every rule function takes the configuration explicitly, and `versionTriple` takes `ruleConfigVersion`.
+- The MCP server exposes 11 read tools (`feedback.list` added). The limit is 15.
+- The main web bundle no longer includes three.js. The 3D window is fetched when it is first opened.
+
+### Fixed
+- `x` and `y` are required on placement capabilities, so a missing coordinate can no longer be stored as `NaN`.
+- Undo sent a stale `base_seq`, which returned a conflict. Writes now run through a queue that reads the latest sequence.
+- `design.get` returns its fields at the top level, matching the registry.
+
+### Deprecated
+- None.
+
+### Removed
+- Single-column editor panels (replaced by the windows).
+
+### Security
+- Design and placement ids are validated before use as file names or object keys.
+- The HTTP adapter requires JSON content type and validates Idempotency-Key format.
+- The server binds to 127.0.0.1 by default. There is no authentication yet (TODO P2).
+- The service worker never caches `/api/` responses, so a stale design is never served as current.
+- Feedback cannot change a design, the knowledge graph or a rule. Every route ends with a human action.

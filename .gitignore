@@ -1,0 +1,13 @@
+node_modules/
+dist/
+coverage/
+.vite/
+
+# Runtime design logs, snapshots and feedback are local state, not source.
+data/designs/
+data/feedback/
+*.torn-*.txt
+*.tmp-*
+
+.DS_Store
+.env

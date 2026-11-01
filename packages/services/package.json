@@ -1,0 +1,14 @@
+{
+  "name": "@ppp/services",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@ppp/core": "*",
+    "@ppp/registry": "*",
+    "@ppp/store": "*"
+  }
+}

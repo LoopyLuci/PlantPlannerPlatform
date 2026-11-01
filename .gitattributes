@@ -1,0 +1,2 @@
+# Store text with LF endings, whatever the operating system.
+* text=auto eol=lf

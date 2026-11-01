@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "ppp-server",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["start"],
+      "port": 4010
+    },
+    {
+      "name": "ppp-web-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:web"],
+      "port": 5173
+    }
+  ]
+}

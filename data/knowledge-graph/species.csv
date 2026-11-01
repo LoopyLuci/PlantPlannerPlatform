@@ -1,0 +1,13 @@
+urn,scientific_name,common_name,family,growth_form,guild_layer
+urn:ppp:species:lavandula-angustifolia,Lavandula angustifolia,English lavender,Lamiaceae,shrub,understory
+urn:ppp:species:salvia-officinalis,Salvia officinalis,Common sage,Lamiaceae,subshrub,understory
+urn:ppp:species:rosmarinus-officinalis,Rosmarinus officinalis,Rosemary,Lamiaceae,shrub,understory
+urn:ppp:species:ocimum-basilicum,Ocimum basilicum,Sweet basil,Lamiaceae,annual herb,groundcover
+urn:ppp:species:solanum-lycopersicum,Solanum lycopersicum,Tomato,Solanaceae,annual vegetable,understory
+urn:ppp:species:solanum-tuberosum,Solanum tuberosum,Potato,Solanaceae,perennial tuber grown as annual,root
+urn:ppp:species:allium-cepa,Allium cepa,Onion,Amaryllidaceae,bulb,root
+urn:ppp:species:tagetes-patula,Tagetes patula,French marigold,Asteraceae,annual herb,groundcover
+urn:ppp:species:brassica-oleracea,Brassica oleracea,Kale and cabbage group,Brassicaceae,biennial vegetable grown as annual,understory
+urn:ppp:species:fragaria-ananassa,Fragaria x ananassa,Garden strawberry,Rosaceae,perennial herb,groundcover
+urn:ppp:species:helianthus-annuus,Helianthus annuus,Common sunflower,Asteraceae,annual,canopy
+urn:ppp:species:quercus-alba,Quercus alba,White oak,Fagaceae,tree,canopy

@@ -1,0 +1,8 @@
+{
+  "version": "rules-1.0",
+  "description": "Thresholds for the deterministic rule engine (docs/DATA_FORMATS.md). Changing any value needs a new file with a new version and an ADR. Results carry this version as ruleConfigVersion.",
+  "companionRadiusM": 2.5,
+  "overlapToleranceM": 0.01,
+  "matureOverlapWarnM": 0.25,
+  "fallbackFootprintM": 0.5
+}

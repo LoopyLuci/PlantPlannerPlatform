@@ -1,0 +1,11 @@
+species_a_urn,species_b_urn,mechanism,direction,source_id,grade,note
+urn:ppp:species:solanum-lycopersicum,urn:ppp:species:solanum-tuberosum,shared_family_disease_risk,antagonistic,SRC-EXT-FAMILY,B,Solanaceae share soilborne and foliar pathogens; keep apart and rotate
+urn:ppp:species:solanum-lycopersicum,urn:ppp:species:tagetes-patula,nematode_suppression_claimed,beneficial,SRC-LORE,C,Marigold is widely reported to deter nematodes; evidence is mixed
+urn:ppp:species:allium-cepa,urn:ppp:species:fragaria-ananassa,pest_repellence_claimed,beneficial,SRC-LORE,C,Alliums are reported to deter some pests; anecdotal
+urn:ppp:species:allium-cepa,urn:ppp:species:brassica-oleracea,pest_repellence_claimed,beneficial,SRC-LORE,C,Alliums are reported to deter some cabbage pests; anecdotal
+urn:ppp:species:salvia-officinalis,urn:ppp:species:brassica-oleracea,pest_repellence_claimed,beneficial,SRC-LORE,C,Sage is reported to deter cabbage moths; anecdotal
+urn:ppp:species:lavandula-angustifolia,urn:ppp:species:brassica-oleracea,pest_repellence_claimed,beneficial,SRC-LORE,C,Lavender is reported to deter some cabbage pests; anecdotal
+urn:ppp:species:rosmarinus-officinalis,urn:ppp:species:brassica-oleracea,pest_repellence_claimed,beneficial,SRC-LORE,C,Rosemary is reported to deter some cabbage pests; anecdotal
+urn:ppp:species:solanum-lycopersicum,urn:ppp:species:ocimum-basilicum,flavour_and_pest_claimed,beneficial,SRC-LORE,C,Basil is widely reported to grow well beside tomato; anecdotal
+urn:ppp:species:solanum-lycopersicum,urn:ppp:species:helianthus-annuus,allelopathy_claimed,antagonistic,SRC-LORE,C,Sunflower is reported to suppress some neighbours; anecdotal
+urn:ppp:species:solanum-lycopersicum,urn:ppp:species:brassica-oleracea,nutrient_competition,antagonistic,SRC-EXT-GENERIC,B,Heavy feeders compete for nutrients when planted together

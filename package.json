@@ -1,0 +1,38 @@
+{
+  "name": "plant-planner-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Plant Planner Platform: deterministic garden design, site-aware validation and cited plant knowledge.",
+  "type": "module",
+  "license": "Apache-2.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "engines": {
+    "node": ">=20.11"
+  },
+  "scripts": {
+    "build": "npm run build -w @ppp/web",
+    "start": "tsx apps/server/src/main.ts",
+    "dev:web": "vite --config apps/web/vite.config.ts",
+    "cli": "tsx apps/cli/src/main.ts",
+    "mcp": "tsx apps/mcp/src/main.ts",
+    "archive": "tsx apps/cli/src/main.ts archive.export_plain",
+    "bench": "tsx scripts/bench.ts",
+    "kill-test": "tsx scripts/kill-run.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "test": "vitest run",
+    "check": "npm run typecheck && npm run test && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "vitest": "^3.0.0"
+  }
+}
