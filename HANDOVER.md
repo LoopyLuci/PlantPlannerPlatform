@@ -2,7 +2,7 @@
 
 **Last updated**: 2026-11-01 by agent (Claude, session 6d7b425e, second pass)
 **Phase**: 0 (nearly complete) and the first half of Phase 1. See [PLAN.md](PLAN.md).
-**Git**: not a repository yet (see B-003).
+**Git**: repository on `main`. First commit `1091e96` (`chore: initial foundation`). The design transcript export at the repo root is untracked (see B-006).
 
 ## Read this first
 
@@ -31,6 +31,7 @@ end of every session, not the start.
 - Node 24.11.1, npm 11.15.0. The project supports Node 20.11 and later.
 - Ports: the server uses `127.0.0.1:4010` by default. Environment variables: `PPP_DATA_DIR`, `PPP_KNOWLEDGE_DIR`, `PPP_RULES_FILE`, `PPP_HOST`, `PPP_PORT`, `PPP_ACTOR`.
 - Scratch data during testing lived in `E:\tmp\ppp-*`. The real store is `data/designs/` (gitignored). It was empty at the end of this session.
+- Git 2.46.0 for Windows, with the global identity already configured. `.gitattributes` keeps text files in LF.
 - Chrome 156 is installed at `C:\Program Files\Google\Chrome`. Playwright can use it through the `chrome` channel.
 - A server started earlier this session is still running on port 4010 with the old code (see Known issues). Restart it.
 
@@ -64,7 +65,7 @@ end of every session, not the start.
 
 - **B-001**: Approve the proposed ADRs `0001` to `0009` in `docs/adr/INDEX.md`. Why: accepted ADRs are immutable, so agents cannot approve them. Suggested decision: accept as written.
 - **B-002**: Confirm licences (Apache-2.0 code, CC-BY-4.0 data). Why: this affects redistribution. Suggested decision: as proposed.
-- **B-003**: Approve `git init` and the first commit. Why: agents do not commit without approval. Suggested: create a repo, commit the current tree as `chore: initial foundation`, with the Co-Authored-By line.
+- **B-006**: Decide whether the design transcript export (`We_are_going_to_design_and_develop_a_next_generation_and.md` and `.json` at the repo root) belongs in the repository. Why: it is the raw chat export the requirements came from, about 630 KB each, and it may contain personal material. It is left untracked. Suggested decision: keep it out of the repository, and move it somewhere private.
 - **B-004**: Verify or replace the four placeholder citations. Why: traits and edges that cite placeholders stay C-grade, and the P0 seed expansion waits on real sources. Suggested decision: keep them C until a curator supplies handbook references.
 - **B-005**: Confirm the feedback routes in ADR-0007 and who reviews the curation queue. Why: feedback is only useful if someone reads the queue. Suggested decision: accept the four routes; the project owner reviews the curation queue until a curator is named.
 
@@ -81,6 +82,7 @@ end of every session, not the start.
 
 | Date | Agent | Summary | State after |
 |---|---|---|---|
+| 2026-11-01 | agent (6d7b425e, third pass) | Approved by the user (B-003): `git init` on `main`, first commit `1091e96` with the Co-Authored-By line. `.gitattributes` (LF) added; `data/feedback/` added to `.gitignore`. Design transcript export left untracked (B-006). | Committed. Working tree clean except the transcript export. |
 | 2026-11-01 | agent (6d7b425e, second pass) | Projection cache; performance check; 1,000-kill test; rule thresholds in a versioned file; feedback log, router and form; archive additions and cold-storage test; offline shell; 3D view and side elevation; lazy loading. Three ADRs (0007 to 0009) proposed. | Phase 0 gate: seed expansion and Playwright still open. Phase 1: 3D built, gates partly measured. Not committed. |
 | 2026-11-01 | agent (6d7b425e) | Built the foundation (registry, rules, store, services, adapters, editor). Reorganised the editor into side-navigation windows after user feedback. Fixed a stale-sequence undo bug. Wrote the planning documents. | Foundation working. Not committed. |
 | 2026-10-31 | agent | Read the design transcript (about 8,900 lines) and recorded its requirements in this repo's plan | Design captured in PLAN and TODO |

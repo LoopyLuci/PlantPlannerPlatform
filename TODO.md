@@ -10,7 +10,7 @@ Priority: `P0` blocks the current phase gate · `P1` next · `P2` scheduled · `
 - [x] `P0` Projection cache: per design, invalidated by any write to the log file (`packages/store`).
 - [!] `P0` Expand the seed graph toward ~500 species with cited traits. Blocked on curation (B-004): an agent must not add facts without sources (AGENTS.md sections 2 and 6).
 - [ ] `P0` End-to-end browser tests for journeys J1, J3, J5 with Playwright. Chrome is installed, so `playwright-core` with the `chrome` channel needs no browser download. Not started.
-- [!] `P0` Commit the work to git once a human approves (B-003).
+- [x] `P0` Commit the work to git once a human approves (B-003). Done: `1091e96`.
 
 ## P1: next phase work
 
@@ -56,6 +56,7 @@ Priority: `P0` blocks the current phase gate · `P1` next · `P2` scheduled · `
 - 2026-11-01: The browser checks ran against the old server's scratch data (`E:/tmp/ppp-browser`), not `data/designs`. The real store was not changed.
 - 2026-11-01: The main bundle was 841 kB with three.js. Lazy-loading the 3D window brings it to 277 kB. The three.js chunk (562 kB) still triggers Vite's size warning.
 - 2026-11-01: 200 plants overlap in a 6 by 4 m plot, so the side elevation draws one mass. A density summary above a count threshold would help.
+- 2026-11-01: Git initialised. `.gitattributes` keeps text files in LF, and `data/feedback/` is ignored like `data/designs/`. Done.
 - Open: the plant library filters the species list in the browser (all species are loaded once). That is fine at 12 species, but it will need server-side search at a few thousand.
 - Open: the rule thresholds (2.5 m companion radius, 0.25 m canopy overlap) are unvalidated. They now live in `config/rules/rules-1.0.json`. Check them against source data before the seed grows.
 
@@ -63,7 +64,8 @@ Priority: `P0` blocks the current phase gate · `P1` next · `P2` scheduled · `
 
 - [!] B-001 Approve the proposed ADRs in [docs/adr/INDEX.md](docs/adr/INDEX.md), now 0001 to 0009 (agents cannot accept their own ADRs).
 - [!] B-002 Confirm the licences: Apache-2.0 for code, CC-BY-4.0 for the knowledge graph.
-- [!] B-003 Approve `git init` and the first commit. The repository is not under version control yet.
+- [x] B-003 Approved and done: `git init` on `main`, first commit `1091e96`.
+- [!] B-006 Decide whether the design transcript export at the repo root belongs in the repository. It is untracked for now.
 - [!] B-004 Verify the seed citations in `data/knowledge-graph/sources.csv`. Four sources are placeholders (`needs_specific_citation`, `not_a_citable_source`). This also blocks the P0 seed expansion.
 - [!] B-005 Confirm the feedback routes (ADR-0007) and who reviews the curation queue.
 
