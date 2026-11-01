@@ -21,7 +21,7 @@ import {
   isOutboxCapability,
   newPlacementId,
 } from './outbox/logic';
-import { type OutboxStore, openOutbox } from './outbox/store';
+import { type OutboxStore, keepOutboxStorage, openOutbox, withOutboxLock } from './outbox/store';
 import { type LayerState } from './Canvas';
 import { Checklist } from './Checklist';
 import { Nav } from './Nav';
@@ -253,12 +253,17 @@ export function App() {
     const outbox = outboxRef.current;
     const designId = designRef.current?.designId;
     if (!outbox || !designId || syncing.current) return;
-    if (queuedRef.current.length === 0 && !offlineRef.current) return;
     syncing.current = true;
     try {
-      const entries = await outbox.list();
-      if (entries.length > 0) {
-        await drainOutbox(
+      // The queue is read from storage, not from this tab's copy, so changes queued in another tab appear here too.
+      await withOutboxLock(async () => {
+        const entries = await outbox.list();
+        // Nothing queued and online: nothing to send and nothing to reload.
+        if (entries.length === 0 && !offlineRef.current) {
+          if (queuedRef.current.length > 0) setQueuedState([]);
+          return;
+        }
+        if (entries.length > 0) await drainOutbox(
           entries,
           async (entry): Promise<SendResult> => {
             try {
@@ -286,9 +291,9 @@ export function App() {
             },
           },
         );
-      }
-      setQueuedState(await outbox.list());
-      await loadDesign(designId).catch(() => undefined);
+        setQueuedState(await outbox.list());
+        await loadDesign(designId).catch(() => undefined);
+      });
     } finally {
       syncing.current = false;
     }
@@ -393,6 +398,7 @@ export function App() {
     let cancelled = false;
     (async () => {
       outboxRef.current = await openOutbox();
+      void keepOutboxStorage();
       if (!cancelled && outboxRef.current) setQueuedState(await outboxRef.current.list());
       try {
         const healthEnvelope = await call<{ status: string }>('platform.get_health', {});
@@ -612,9 +618,23 @@ export function App() {
     const current = designRef.current;
     if (!current) return;
     if (!window.confirm(`Archive "${current.name}"? It stays in the history and can be shown again with "show archived".`)) return;
-    const envelope = await call('design.archive', { design_id: current.designId, confirm: true, base_seq: current.seq }, {
-      idempotencyKey: newKey('archive'),
-    });
+    // Archiving is a human decision made on the server copy, so it waits until queued changes have synced.
+    if (queuedRef.current.length > 0 || offlineRef.current) {
+      fail('Archive needs the server, and changes are waiting to sync. Archive this design once they have synced.');
+      return;
+    }
+    let envelope: Envelope<unknown>;
+    try {
+      envelope = await call('design.archive', { design_id: current.designId, confirm: true, base_seq: current.seq }, {
+        idempotencyKey: newKey('archive'),
+      });
+    } catch (error) {
+      if (error instanceof ApiUnreachableError) {
+        fail('You are offline, so this design was not archived. Archive it when the server is back.');
+        return;
+      }
+      throw error;
+    }
     if (!envelope.ok) {
       fail(envelope.error?.message ?? 'The design could not be archived.');
       return;

@@ -11,6 +11,32 @@ import type { OutboxEntry } from './logic';
 
 const DB_NAME = 'ppp-outbox';
 const DB_VERSION = 1;
+const SYNC_LOCK = 'ppp-outbox-sync';
+
+/**
+ * Runs one drain at a time across every tab of this origin, so two tabs do not send the same
+ * queued change at once. A duplicate send is still harmless: each change carries its idempotency
+ * key. A tab that finds the lock held skips this round.
+ * Where Web Locks are missing, the drain runs without the lock.
+ */
+export async function withOutboxLock(run: () => Promise<void>): Promise<void> {
+  if (typeof navigator === 'undefined' || !navigator.locks) {
+    await run();
+    return;
+  }
+  await navigator.locks.request(SYNC_LOCK, { ifAvailable: true }, async (lock) => {
+    if (lock) await run();
+  });
+}
+
+/** Asks the browser to keep this origin's storage under pressure, so queued changes are not evicted. */
+export async function keepOutboxStorage(): Promise<void> {
+  try {
+    await navigator.storage?.persist?.();
+  } catch {
+    // Not supported or refused: the queue still works, it may be evicted under storage pressure.
+  }
+}
 
 export interface CachedDesign {
   design: DesignView;

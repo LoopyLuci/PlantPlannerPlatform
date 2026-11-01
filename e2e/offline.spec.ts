@@ -202,3 +202,56 @@ test.describe('J3 remove and undo offline (ADR-0011)', () => {
     expect(after.placements.find((p) => p.id === target.id)).toMatchObject({ x: target.x, y: target.y });
   });
 });
+
+test.describe('J3 archive needs the server (ADR-0011)', () => {
+  test('archiving while offline is refused with a message, and the server log does not change', async ({ page, context, request, baseURL }) => {
+    await page.goto('/#/designs');
+    const status = page.getByRole('status', { name: 'Data status' });
+    await expect(status).toContainText('healthy');
+    const before = await serverDesign(request, baseURL);
+
+    await context.setOffline(true);
+    page.once('dialog', (dialog) => void dialog.accept());
+    await page.getByRole('button', { name: 'Archive the open design' }).click();
+    await expect(page.getByText('You are offline, so this design was not archived')).toBeVisible();
+
+    await context.setOffline(false);
+    await expect(status).toContainText('healthy', { timeout: 30_000 });
+    expect((await serverDesign(request, baseURL)).seq).toBe(before.seq);
+  });
+});
+
+test.describe('J3 two tabs share one queue (ADR-0011)', () => {
+  test('two tabs send queued moves once each, and both show the queue cleared', async ({ page, context, request, baseURL }) => {
+    await page.goto('/#/plan');
+    await expect(page.getByRole('heading', { level: 1, name: 'Plan' })).toBeVisible();
+    const status = page.getByRole('status', { name: 'Data status' });
+    await expect(status).toContainText('healthy');
+
+    const other = await context.newPage();
+    await other.goto('/#/plan');
+    const otherStatus = other.getByRole('status', { name: 'Data status' });
+    await expect(otherStatus).toContainText('healthy');
+    const before = await serverDesign(request, baseURL);
+
+    const nav = page.getByRole('navigation', { name: 'Windows' });
+    await nav.getByRole('button', { name: /^Placed plants\b/ }).click();
+    await page.locator('.placement-row').first().click();
+    await nav.getByRole('button', { name: /^Plan\b/ }).click();
+
+    await context.setOffline(true);
+    await page.keyboard.press('ArrowRight');
+    await expect(status).toContainText('1 waiting to sync');
+    await page.keyboard.press('ArrowDown');
+    await expect(status).toContainText('2 waiting to sync');
+    // The other tab reads the same queue from storage on its next tick.
+    await expect(otherStatus).toContainText('2 waiting to sync', { timeout: 15_000 });
+
+    await context.setOffline(false);
+    await expect(status).not.toContainText('waiting to sync', { timeout: 30_000 });
+    await expect(otherStatus).not.toContainText('waiting to sync', { timeout: 30_000 });
+    expect(await serverDesign(request, baseURL)).toMatchObject({ seq: before.seq + 2 });
+    await expect(page.getByRole('alert').filter({ hasText: 'could not be applied' })).toHaveCount(0);
+    await expect(other.getByRole('alert').filter({ hasText: 'could not be applied' })).toHaveCount(0);
+  });
+});

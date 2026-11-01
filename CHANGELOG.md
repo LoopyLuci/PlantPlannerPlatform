@@ -48,6 +48,9 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 - The main web bundle no longer includes three.js. The 3D window is fetched when it is first opened.
 
 ### Fixed
+- Archiving while offline failed without a message. It now says the design was not archived, and archiving waits until queued changes have synced, since the server copy is behind the local view.
+- Two tabs could both drain the same queue. Each drain now takes a Web Lock, so one tab sends at a time; a tab that finds the lock held skips the round. The browser test passes with and without the lock, because idempotency keys already make a duplicate send harmless. The lock avoids the duplicate requests.
+- The browser is asked to keep this origin's storage (`navigator.storage.persist`), so queued changes are less likely to be evicted under storage pressure. Clearing site data by hand still removes the queue.
 - A change queued offline did not offer Undo; the undo toast is now shown for queued changes too.
 - `x` and `y` are required on placement capabilities, so a missing coordinate can no longer be stored as `NaN`.
 - Undo sent a stale `base_seq`, which returned a conflict. Writes now run through a queue that reads the latest sequence.
