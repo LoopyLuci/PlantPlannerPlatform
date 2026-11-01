@@ -5,6 +5,7 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 ## [Unreleased]
 
 ### Added
+- End-to-end tests with Playwright (`npm run e2e`, which builds the web app first): journeys J1 (place, correct by keyboard, reload) and J5 (search, profile), the feedback journey, and the offline shell (J3, shell only). They run against a server on port 4411 with a fresh scratch data directory. Set `PPP_E2E_CHANNEL=msedge` (or `chrome`) to use an installed browser. Typecheck covers the tests.
 - Feedback on verdicts: `feedback.record` and `feedback.list` capabilities, a hash-chained feedback log, a pure router to four suggested routes, and a form in Plant details (ADR-0007).
 - Rule thresholds in `config/rules/rules-1.0.json`, loaded at start-up and validated; `PPP_RULES_FILE` overrides the path (ADR-0008).
 - 3D view window (three.js, loaded on demand): instanced plants, drag to move (saved through the same write as the plan), and a fallback to the side elevation without WebGL (ADR-0009).

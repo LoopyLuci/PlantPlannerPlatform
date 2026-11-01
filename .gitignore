@@ -2,6 +2,8 @@ node_modules/
 dist/
 coverage/
 .vite/
+test-results/
+playwright-report/
 
 # Runtime design logs, snapshots and feedback are local state, not source.
 data/designs/

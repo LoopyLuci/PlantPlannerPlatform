@@ -32,13 +32,14 @@ end of every session, not the start.
 - Ports: the server uses `127.0.0.1:4010` by default. Environment variables: `PPP_DATA_DIR`, `PPP_KNOWLEDGE_DIR`, `PPP_RULES_FILE`, `PPP_HOST`, `PPP_PORT`, `PPP_ACTOR`.
 - Scratch data during testing lived in `E:\tmp\ppp-*`. The real store is `data/designs/` (gitignored). It was empty at the end of this session.
 - Git 2.46.0 for Windows, with the global identity already configured. `.gitattributes` keeps text files in LF.
-- Chrome 156 is installed at `C:\Program Files\Google\Chrome`. Playwright can use it through the `chrome` channel.
+- Google Chrome is not installed on this machine (the earlier note was wrong). Microsoft Edge is at `C:\Program Files (x86)\Microsoft\Edge`. End-to-end tests use it with `PPP_E2E_CHANNEL=msedge`. Without that variable they use the Chromium that `npx playwright install chromium` downloads.
 - A server started earlier this session is still running on port 4010 with the old code (see Known issues). Restart it.
 
 ## Known issues
 
 - **Stale server on port 4010.** It runs code from before this session's capability changes. Restart it (`Ctrl+C`, then `npm start`) before using `feedback.record` or `feedback.list`.
-- The built-in browser pane refused service-worker registration. The offline path is therefore unverified. Check it in Chrome: open the editor, stop the server, reload, and confirm the editor opens with the "cannot reach" banner.
+- The built-in browser pane refused service-worker registration. The offline shell is verified in Chromium through Playwright (`e2e/offline.spec.ts`), not in the pane. Writes while offline and the outbox are not built.
+- End-to-end tests are not in CI yet. `npm run e2e` builds the app and runs them locally. CI needs `npx playwright install chromium` before the run.
 - `loadState` replays the log on a cache miss. Fine at this size.
 - The web app loads all species at start-up (about 12). Move search to the server before the library grows.
 - The sun value is one number for the whole site. It is not computed from geometry yet.
@@ -77,12 +78,14 @@ end of every session, not the start.
 - `npm run bench`: 50 plants evaluate in 0.34 ms (median) against a 50 ms gate. 200 plants: 5.7 ms.
 - `npm run archive`: regenerated (11 files, 0 designs, since the real store is empty). `sha256sum -c checksums.sha256`: all 11 OK.
 - Browser (built-in pane, desktop and 375 px): 3D view draws the starter garden; a drag saved one write (seq 21, then 22) and the store returned the new position; the camera did not orbit; the side elevation toggles axis; the WebGL fallback appears when `getContext` returns null; the Details feedback form renders and shows the stale server's error message; 200 plants: 2 instanced draws per frame, median frame 16.8 ms while zooming; no horizontal scroll at 375 px.
-- Not verified: the feedback success path in the browser (needs a restarted server); the offline shell; the 2D-to-3D latency gate; the 60 fps gate on reference hardware.
+- `npm run e2e` (Playwright, Edge, fresh scratch data on port 4411): 4 tests passed. J1 place, correct by keyboard and reload; J5 search and profile; feedback recorded and routed; offline shell reopens with the server down.
+- Not verified: the 2D-to-3D latency gate; the 60 fps gate on reference hardware; J3 writes offline (not built); the 50 ms search gate in J5 (not timed).
 
 ## Session log (most recent first)
 
 | Date | Agent | Summary | State after |
 |---|---|---|---|
+| 2026-11-01 | agent (6d7b425e, fourth pass) | Added Playwright end-to-end tests (`npm run e2e`): J1, J5, feedback and the offline shell pass in Edge. Typecheck now covers the tests. Checked the feedback success path on a fresh server. Chrome note corrected. | Not committed. `npm run check` passes (141 tests). |
 | 2026-11-01 | agent (6d7b425e, third pass) | Approved by the user (B-003): `git init` on `main`, first commit `1091e96` with the Co-Authored-By line. `.gitattributes` (LF) added; `data/feedback/` added to `.gitignore`. Design transcript export left untracked (B-006). | Committed. Working tree clean except the transcript export. |
 | 2026-11-01 | agent (6d7b425e, second pass) | Projection cache; performance check; 1,000-kill test; rule thresholds in a versioned file; feedback log, router and form; archive additions and cold-storage test; offline shell; 3D view and side elevation; lazy loading. Three ADRs (0007 to 0009) proposed. | Phase 0 gate: seed expansion and Playwright still open. Phase 1: 3D built, gates partly measured. Not committed. |
 | 2026-11-01 | agent (6d7b425e) | Built the foundation (registry, rules, store, services, adapters, editor). Reorganised the editor into side-navigation windows after user feedback. Fixed a stale-sequence undo bug. Wrote the planning documents. | Foundation working. Not committed. |

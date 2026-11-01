@@ -9,12 +9,12 @@ Priority: `P0` blocks the current phase gate · `P1` next · `P2` scheduled · `
 - [x] `P0` Performance check: a 50-plant design evaluates in 0.34 ms (median; gate 50 ms), `npm run bench`. Plan drawing at 60 fps is still unmeasured on a reference laptop.
 - [x] `P0` Projection cache: per design, invalidated by any write to the log file (`packages/store`).
 - [!] `P0` Expand the seed graph toward ~500 species with cited traits. Blocked on curation (B-004): an agent must not add facts without sources (AGENTS.md sections 2 and 6).
-- [ ] `P0` End-to-end browser tests for journeys J1, J3, J5 with Playwright. Chrome is installed, so `playwright-core` with the `chrome` channel needs no browser download. Not started.
+- [~] `P0` End-to-end browser tests with Playwright (`npm run e2e`): J1 and J5 pass, plus the feedback journey and the offline shell. Still open: J3's offline writes and outbox (not built; the test covers the shell only), J5's 50 ms search timing (the test checks results appear, not the time), and running the suite in CI (needs `npx playwright install chromium` in the workflow). Chrome is not installed on this machine; Edge (`PPP_E2E_CHANNEL=msedge`) is used here.
 - [x] `P0` Commit the work to git once a human approves (B-003). Done: `1091e96`.
 
 ## P1: next phase work
 
-- [~] `P1` Offline app shell: service worker written and registered in production builds (`apps/web/public/sw.js`). Not verified offline: the built-in browser pane refused the registration. Needs a check in Chrome: stop the server, reload, and confirm the editor opens.
+- [~] `P1` Offline app shell: service worker registered in production builds (`apps/web/public/sw.js`). Verified offline in Chromium through Playwright (`e2e/offline.spec.ts`): the editor reopens with the server unreachable. Not yet checked in the built-in pane, which refused the registration. Writes while offline are not built.
 - [ ] `P1` Companion mechanism table: evidence grades and citations for every edge; add effect sizes where published (curation).
 - [ ] `P1` Sun and shadow engine: compute hours of direct sun per placement from site geometry (Phase 2). Blocked on Q1 in HANDOVER.
 - [x] `P1` Feedback log with reason tags and a deterministic router (ADR-0007; I7). The form is in Plant details, and `feedback.list` shows the routes.
