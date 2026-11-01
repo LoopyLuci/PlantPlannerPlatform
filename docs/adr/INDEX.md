@@ -14,5 +14,6 @@ Accepted ADRs are immutable. New decisions add new ADRs. Every ADR here is **Pro
 | 0008 | Rule configuration as a versioned file (`config/rules/`) | Proposed | I1, I4 |
 | 0009 | Perspective view (three.js), side elevation, and the offline app shell | Proposed | I2, I9 |
 | 0010 | Public repository and contribution model | Proposed | I1, I3 |
+| 0011 | Offline writes through a browser outbox (J3) | Proposed | I3, I4, I5, I7 |
 
 To add an ADR: copy `0000-template.md` to `NNNN-short-title.md`, fill it in, add a row here, and ask a human to review it.

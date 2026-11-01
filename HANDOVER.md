@@ -39,7 +39,7 @@ end of every session, not the start.
 
 - **Stale server on port 4010.** It runs code from before this session's capability changes. Restart it (`Ctrl+C`, then `npm start`) before using `feedback.record` or `feedback.list`.
 - The built-in browser pane refused service-worker registration. The offline shell is verified in Chromium through Playwright (`e2e/offline.spec.ts`), not in the pane. Writes while offline and the outbox are not built.
-- End-to-end tests are not in CI yet. `npm run e2e` builds the app and runs them locally. CI needs `npx playwright install chromium` before the run.
+- End-to-end tests run in CI as the `e2e` job (Ubuntu, Node 24). The first CI run had not been checked when this line was written; check it before relying on it.
 - `loadState` replays the log on a cache miss. Fine at this size.
 - The web app loads all species at start-up (about 12). Move search to the server before the library grows.
 - The sun value is one number for the whole site. It is not computed from geometry yet.
@@ -64,7 +64,7 @@ end of every session, not the start.
 
 ## Blocked on human
 
-- **B-001**: Approve the proposed ADRs `0001` to `0009` in `docs/adr/INDEX.md`. Why: accepted ADRs are immutable, so agents cannot approve them. Suggested decision: accept as written.
+- **B-001**: Approve the proposed ADRs `0001` to `0011` in `docs/adr/INDEX.md`. Why: accepted ADRs are immutable, so agents cannot approve them. Suggested decision: accept as written.
 - **B-002** (resolved): Licences adopted as proposed. Apache-2.0 for the software (`LICENSE`), CC-BY-4.0 for the knowledge graph (`data/knowledge-graph/LICENSE`). Recorded on the owner's instruction to proceed with the proposed defaults.
 - **B-007** (resolved): The public repository is `LoopyLuci/PlantPlannerPlatform`, the account signed in with GitHub CLI. Created public on the owner's instruction.
 - **B-006**: Decide whether the design transcript export (`We_are_going_to_design_and_develop_a_next_generation_and.md` and `.json` at the repo root) belongs in the repository. Why: it is the raw chat export the requirements came from, about 630 KB each, and it may contain personal material. It is left untracked. Suggested decision: keep it out of the repository, and move it somewhere private.

@@ -35,6 +35,28 @@ jobs:
           npm run archive
           cd data/archive && sha256sum -c checksums.sha256
 
+  e2e:
+    name: end-to-end journeys (Playwright, Chromium)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium for Playwright
+        run: npx playwright install --with-deps chromium
+      - name: Build the app and run the journey tests
+        run: npm run e2e
+      - name: Keep the trace of any failed journey
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results/
+          retention-days: 7
+
   kill-test:
     name: process-kill test (1,000 kills)
     # The full kill test is slow (about 4 minutes), so it runs nightly and on demand, not on every push.
