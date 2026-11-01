@@ -34,6 +34,23 @@ npm run check      # typecheck, all tests, production build
 
 `npm run check` is the bar for every change. A change is not done until it passes.
 
+### Local pipeline
+
+`npm run ci` runs the local pipeline on your machine. It runs the same checks as the GitHub workflow, plus preflight checks:
+
+```bash
+npm run ci         # standard: preflight, typecheck, tests, archive, build, browser journeys (about 20 s)
+npm run ci:quick   # preflight, typecheck, tests, archive (a few seconds)
+npm run ci:full    # standard, plus the 200-kill test and the performance check (about 1 minute)
+```
+
+- Preflight stops the run before any stage when Node is too old, dependencies are missing, port 4411 is busy, or no browser is available. It warns about uncommitted changes but does not stop.
+- Stages in the same group run in parallel. A stage has a timeout, and a timeout kills its whole process tree.
+- A lock file in `.ci/` stops two runs from overlapping. A lock left by a dead process is cleared automatically.
+- Logs are in `.ci/logs/`, and the result of the last run is in `.ci/last-run.json`. Both are git-ignored.
+- `npm run ci -- --only test,archive` or `--skip e2e` runs a chosen set of stages.
+- `npm run ci:hooks` installs an optional pre-push hook that runs `npm run ci` before every push. It is opt-in and changes your local git configuration.
+
 ## The change protocol
 
 1. Check [docs/adr/INDEX.md](docs/adr/INDEX.md). A change to an invariant, a stored format or a capability's contract needs an ADR first. Copy [docs/adr/0000-template.md](docs/adr/0000-template.md). An accepted ADR is never edited; a new one supersedes it.
