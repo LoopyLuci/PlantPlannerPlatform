@@ -9,7 +9,7 @@ Priority: `P0` blocks the current phase gate · `P1` next · `P2` scheduled · `
 - [x] `P0` Performance check: a 50-plant design evaluates in 0.34 ms (median; gate 50 ms), `npm run bench`. Plan drawing at 60 fps is still unmeasured on a reference laptop.
 - [x] `P0` Projection cache: per design, invalidated by any write to the log file (`packages/store`).
 - [!] `P0` Expand the seed graph toward ~500 species with cited traits. Blocked on curation (B-004): an agent must not add facts without sources (AGENTS.md sections 2 and 6).
-- [~] `P0` End-to-end browser tests with Playwright (`npm run e2e`): J1 and J5 pass, plus the feedback journey and the offline shell. J3 moves made offline are tested through the outbox (ADR-0011). Still open: adding a species from the library offline (the profile is not cached), a conflict test in the browser, and J5's 50 ms search timing (the test checks results appear, not the time). The suite runs in CI as the `e2e` job. Chrome is not installed on this machine; Edge (`PPP_E2E_CHANNEL=msedge`) is used here.
+- [~] `P0` End-to-end browser tests with Playwright (`npm run e2e`): J1 and J5 pass, plus the feedback journey and the offline shell. J3 moves made offline are tested through the outbox (ADR-0011). Still open: adding a species from the library offline (the profile is not cached), the scale check of search at the planned 500 species (measured at 12: median 6.8 ms, worst 8.6 ms). The suite runs in CI as the `e2e` job. Chrome is not installed on this machine; Edge (`PPP_E2E_CHANNEL=msedge`) is used here.
 - [x] `P0` Commit the work to git once a human approves (B-003). Done: `1091e96`.
 
 ## P1: next phase work

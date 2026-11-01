@@ -123,3 +123,50 @@ test.describe('J3 adds from the plant library offline (ADR-0011)', () => {
     expect(new Set(afterDesign.placements.map((p) => p.id)).size).toBe(afterDesign.placements.length);
   });
 });
+
+test.describe('J3 a refused offline change (ADR-0011)', () => {
+  test('a change the server refuses is shown as a conflict, and discarding it clears the queue', async ({ page, context, request, baseURL }) => {
+    await page.goto('/#/plan');
+    await expect(page.getByRole('heading', { level: 1, name: 'Plan' })).toBeVisible();
+    const status = page.getByRole('status', { name: 'Data status' });
+    await expect(status).toContainText('healthy');
+
+    const nav = page.getByRole('navigation', { name: 'Windows' });
+    await nav.getByRole('button', { name: /^Placed plants\b/ }).click();
+    await page.locator('.placement-row').first().click();
+    await nav.getByRole('button', { name: /^Plan\b/ }).click();
+
+    await context.setOffline(true);
+    await page.keyboard.press('ArrowRight');
+    await expect(status).toContainText('1 waiting to sync');
+
+    // Someone else changes the same design on the server while this browser is offline.
+    const design = await serverDesign(request, baseURL);
+    const target = design.placements[0];
+    const direct = await request.post(`${baseURL}/api/v1/capabilities/design.update_placement`, {
+      headers: { 'idempotency-key': `other-writer-${Date.now()}` },
+      data: { design_id: await designIdOf(request, baseURL), placement_id: target.id, base_seq: design.seq, x: 0.5, y: 0.5 },
+    });
+    expect(direct.ok(), await direct.text()).toBeTruthy();
+
+    // Back online: the queued move is refused as a conflict, and the page says so.
+    await context.setOffline(false);
+    const banner = page.getByRole('alert').filter({ hasText: 'could not be applied' });
+    await expect(banner).toBeVisible({ timeout: 30_000 });
+    await expect(status).toContainText('1 waiting to sync');
+
+    // Discarding clears the queue; the server keeps the other writer's position, not the refused move.
+    await banner.getByRole('button', { name: 'Discard offline changes' }).click();
+    await expect(banner).toHaveCount(0);
+    await expect(status).not.toContainText('waiting to sync');
+    const after = (await serverDesign(request, baseURL)).placements.find((p) => p.id === target.id);
+    expect(after).toMatchObject({ x: 0.5, y: 0.5 });
+  });
+});
+
+/** The id of the first open design, read from the server. */
+async function designIdOf(request: APIRequestContext, baseURL: string | undefined) {
+  const listed = await (await request.post(`${baseURL}/api/v1/capabilities/design.list`, { data: {} })).json();
+  const designs = (listed as { data: { designs: { designId: string; archived: boolean }[] } }).data.designs;
+  return designs.find((d) => !d.archived)?.designId ?? '';
+}

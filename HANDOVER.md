@@ -82,7 +82,8 @@ end of every session, not the start.
 - Browser (built-in pane, desktop and 375 px): 3D view draws the starter garden; a drag saved one write (seq 21, then 22) and the store returned the new position; the camera did not orbit; the side elevation toggles axis; the WebGL fallback appears when `getContext` returns null; the Details feedback form renders and shows the stale server's error message; 200 plants: 2 instanced draws per frame, median frame 16.8 ms while zooming; no horizontal scroll at 375 px.
 - `npm run e2e` (Playwright, Edge, fresh scratch data on port 4411): 4 tests passed. J1 place, correct by keyboard and reload; J5 search and profile; feedback recorded and routed; offline shell reopens with the server down.
 - `npm run perf:3d` (headless Chromium, this machine, 200 plants): median frame 16.7 ms (59.9 fps), worst frame 16.8 ms over 180 frames while orbiting; plan-edit write acknowledged in a median of 12 ms. Headless frames may be capped at the display rate, so this shows no drops, not headroom.
-- Not verified: the 100 ms plan-to-3D render gate (the render time is not exposed); the 60 fps gate on reference hardware; a species never opened online cannot be added offline; a conflict in the browser (unit-tested only); the 50 ms search gate in J5 (not timed).
+- `npm run perf:3d` also times plant-library search (12 species, headless): median 6.8 ms, worst 8.6 ms against the 50 ms gate.
+- Not verified: the 100 ms plan-to-3D render gate (the render time is not exposed); the 60 fps gate on reference hardware; a species never opened online cannot be added offline; the 50 ms search gate at 500 species (measured only at 12 species: median 6.8 ms, worst 8.6 ms, headless).
 
 ## Session log (most recent first)
 
