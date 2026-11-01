@@ -1,0 +1,7 @@
+#!/bin/sh
+# Installed by `npm run ci:hooks`. Runs the standard local pipeline before every push.
+# To skip once in an emergency: git push --no-verify (the pipeline is not optional for merges to main).
+npm run ci --silent || {
+  echo "Local CI failed; the push was stopped. Details: .ci/last-run.json and .ci/logs/" >&2
+  exit 1
+}
