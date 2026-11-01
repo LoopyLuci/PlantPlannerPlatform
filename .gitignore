@@ -11,3 +11,6 @@ data/feedback/
 
 .DS_Store
 .env
+
+# Private design-chat exports the requirements came from (TODO B-006). Not project content.
+We_are_going_to_design_and_develop_a_next_generation_and.*

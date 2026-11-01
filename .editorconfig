@@ -1,0 +1,21 @@
+# Editor settings shared across contributors. See https://editorconfig.org
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+[*.md]
+# Two trailing spaces mean a line break in Markdown, so keep them.
+trim_trailing_whitespace = false
+
+[*.{ndjson,csv}]
+# Data files are generated or curated line by line. Keep their last newline.
+insert_final_newline = true
+
+[package-lock.json]
+insert_final_newline = true

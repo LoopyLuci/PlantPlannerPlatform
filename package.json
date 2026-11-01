@@ -5,6 +5,14 @@
   "description": "Plant Planner Platform: deterministic garden design, site-aware validation and cited plant knowledge.",
   "type": "module",
   "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LoopyLuci/PlantPlannerPlatform.git"
+  },
+  "homepage": "https://github.com/LoopyLuci/PlantPlannerPlatform#readme",
+  "bugs": {
+    "url": "https://github.com/LoopyLuci/PlantPlannerPlatform/issues"
+  },
   "workspaces": [
     "packages/*",
     "apps/*"

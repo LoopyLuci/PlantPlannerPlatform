@@ -23,7 +23,7 @@ end of every session, not the start.
 | Web editor | Nine windows in a side navigation (Plan, 3D view, Side elevation, Site, Plant library, Placed plants, Plant details, Designs, Data health). Live rules, undo, suggestions, feedback form, offline shell (service worker). | `apps/web` |
 | Knowledge graph | `kg-2026.10`, status `seed-unreviewed`, 12 species, 10 companion edges, 4 sources (unchanged) | `data/knowledge-graph` |
 | Rule thresholds | `rules-1.0`, in a versioned file | `config/rules/rules-1.0.json` |
-| Tests | 139 across packages and the web model (`npm run check` passes). Plus the process-kill test (1,000 kills passed) and the performance check (`npm run bench`). | `packages/*/test`, `apps/*/test`, `apps/web/test`, `scripts/` |
+| Tests | 141 across packages and the web model (`npm run check` passes). Plus the process-kill test (1,000 kills passed) and the performance check (`npm run bench`). | `packages/*/test`, `apps/*/test`, `apps/web/test`, `scripts/` |
 
 ## Environment
 
@@ -64,14 +64,15 @@ end of every session, not the start.
 ## Blocked on human
 
 - **B-001**: Approve the proposed ADRs `0001` to `0009` in `docs/adr/INDEX.md`. Why: accepted ADRs are immutable, so agents cannot approve them. Suggested decision: accept as written.
-- **B-002**: Confirm licences (Apache-2.0 code, CC-BY-4.0 data). Why: this affects redistribution. Suggested decision: as proposed.
+- **B-002** (resolved): Licences adopted as proposed. Apache-2.0 for the software (`LICENSE`), CC-BY-4.0 for the knowledge graph (`data/knowledge-graph/LICENSE`). Recorded on the owner's instruction to proceed with the proposed defaults.
+- **B-007** (resolved): The public repository is `LoopyLuci/PlantPlannerPlatform`, the account signed in with GitHub CLI. Created public on the owner's instruction.
 - **B-006**: Decide whether the design transcript export (`We_are_going_to_design_and_develop_a_next_generation_and.md` and `.json` at the repo root) belongs in the repository. Why: it is the raw chat export the requirements came from, about 630 KB each, and it may contain personal material. It is left untracked. Suggested decision: keep it out of the repository, and move it somewhere private.
 - **B-004**: Verify or replace the four placeholder citations. Why: traits and edges that cite placeholders stay C-grade, and the P0 seed expansion waits on real sources. Suggested decision: keep them C until a curator supplies handbook references.
 - **B-005**: Confirm the feedback routes in ADR-0007 and who reviews the curation queue. Why: feedback is only useful if someone reads the queue. Suggested decision: accept the four routes; the project owner reviews the curation queue until a curator is named.
 
 ## Verification record (2026-11-01, this session)
 
-- `npm run check`: 11 test files, 139 tests passed; typecheck clean; production build clean (main bundle 277 kB, 3D chunk 562 kB).
+- `npm run check`: 12 test files, 141 tests passed; typecheck clean; production build clean (main bundle 277 kB, 3D chunk 562 kB).
 - `npm run kill-test -- --iterations 1000 --seed 20261101`: 1,000 kills, 21,746 acknowledged writes, 0 failed, 0 interrupted lines repaired.
 - `npm run bench`: 50 plants evaluate in 0.34 ms (median) against a 50 ms gate. 200 plants: 5.7 ms.
 - `npm run archive`: regenerated (11 files, 0 designs, since the real store is empty). `sha256sum -c checksums.sha256`: all 11 OK.

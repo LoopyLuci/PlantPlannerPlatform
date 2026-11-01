@@ -1,0 +1,56 @@
+name: Bug report
+description: Something does not work as the documents say it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you. Please do not include design data or personal information. If a design is needed to reproduce the problem, describe it in words.
+  - type: textarea
+    id: summary
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      value: |
+        1.
+        2.
+        3.
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Version triple
+      description: Shown in the app's top bar, or in any API response (modelVersion, graphVersion, ruleConfigVersion).
+      placeholder: "model none · graph kg-2026.10 · rules rules-1.0"
+  - type: dropdown
+    id: interface
+    attributes:
+      label: Where it happened
+      options:
+        - Web editor
+        - HTTP API
+        - CLI
+        - MCP
+        - Archive or documents
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Operating system, browser (for the web editor), and `node --version`.
+      placeholder: "Windows 11, Chrome 156, Node 24.11.1"
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs or the error message
+      description: Paste the error text. Remove anything that identifies you or your garden.
+      render: text

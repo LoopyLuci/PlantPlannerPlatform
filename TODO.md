@@ -19,7 +19,7 @@ Priority: `P0` blocks the current phase gate · `P1` next · `P2` scheduled · `
 - [ ] `P1` Sun and shadow engine: compute hours of direct sun per placement from site geometry (Phase 2). Blocked on Q1 in HANDOVER.
 - [x] `P1` Feedback log with reason tags and a deterministic router (ADR-0007; I7). The form is in Plant details, and `feedback.list` shows the routes.
 - [x] `P1` Plain-text archive: feedback records and rule thresholds are included, and a cold-storage check runs in `npm test`. Scan folders are added when they exist.
-- [!] `P1` Add a `LICENSE` file (Apache-2.0) and `data/knowledge-graph/LICENSE` (CC-BY-4.0) once B-002 is decided.
+- [x] `P1` Add a `LICENSE` file (Apache-2.0) and `data/knowledge-graph/LICENSE` (CC-BY-4.0). Done with B-002.
 - [~] `P1` Rule config as data: thresholds in `config/rules/rules-1.0.json`, validated at start-up (ADR-0008). The dual-evaluation swap is not built.
 
 ## P2: scheduled
@@ -63,7 +63,8 @@ Priority: `P0` blocks the current phase gate · `P1` next · `P2` scheduled · `
 ## Blocked on human (`[!]`)
 
 - [!] B-001 Approve the proposed ADRs in [docs/adr/INDEX.md](docs/adr/INDEX.md), now 0001 to 0009 (agents cannot accept their own ADRs).
-- [!] B-002 Confirm the licences: Apache-2.0 for code, CC-BY-4.0 for the knowledge graph.
+- [x] B-002 Licences adopted as proposed: Apache-2.0 for code, CC-BY-4.0 for the knowledge graph.
+- [x] B-007 Public repository is `LoopyLuci/PlantPlannerPlatform`.
 - [x] B-003 Approved and done: `git init` on `main`, first commit `1091e96`.
 - [!] B-006 Decide whether the design transcript export at the repo root belongs in the repository. It is untracked for now.
 - [!] B-004 Verify the seed citations in `data/knowledge-graph/sources.csv`. Four sources are placeholders (`needs_specific_citation`, `not_a_citable_source`). This also blocks the P0 seed expansion.

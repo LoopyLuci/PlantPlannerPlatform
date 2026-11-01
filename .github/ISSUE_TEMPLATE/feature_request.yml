@@ -1,0 +1,37 @@
+name: Feature or change proposal
+description: A new capability, a change to behaviour, or a change to a rule or format.
+labels: [proposal]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Start with the problem, not the solution. Many ideas already have a plan: check [PLAN.md](../../PLAN.md) and [TODO.md](../../TODO.md) first.
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: Who needs this, and what can they not do today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: The proposal
+      description: What should happen. A sketch of the behaviour is enough.
+    validations:
+      required: true
+  - type: checkboxes
+    id: adr
+    attributes:
+      label: Does this touch the rules of the project?
+      description: Tick any that apply. Each one needs an ADR (docs/adr/0000-template.md) before code changes.
+      options:
+        - label: It changes an invariant in docs/DESIGN_PRINCIPLES.md
+        - label: It changes a stored format (docs/DATA_FORMATS.md)
+        - label: It changes a capability's inputs, outputs or exposure in the registry
+        - label: It changes a rule or a rule threshold
+        - label: None of the above
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered

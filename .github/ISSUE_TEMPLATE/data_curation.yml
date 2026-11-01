@@ -1,0 +1,49 @@
+name: Plant data correction or addition
+description: A species, trait, companion relationship or source in the knowledge graph needs to change.
+labels: [data, curation]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Every value needs a source and an evidence grade. A value without a source is not added. If you do not have a source, say so; that is useful too.
+        Grades: **A** measured or authoritative · **B** expert consensus · **C** anecdotal, unverified or mixed.
+  - type: input
+    id: subject
+    attributes:
+      label: Species, trait or edge
+      description: The URN (for example urn:ppp:species:lavandula-angustifolia) and the trait or the partner species.
+    validations:
+      required: true
+  - type: input
+    id: current
+    attributes:
+      label: Current value
+      description: As it appears in data/knowledge-graph, or "not recorded".
+  - type: input
+    id: proposed
+    attributes:
+      label: Proposed value and unit
+    validations:
+      required: true
+  - type: input
+    id: source
+    attributes:
+      label: Source (title, year, and a link or ISBN)
+      description: The publication or dataset the value comes from. Quote the page or table if you can.
+    validations:
+      required: true
+  - type: dropdown
+    id: grade
+    attributes:
+      label: Proposed evidence grade
+      options:
+        - A (measured or authoritative)
+        - B (expert consensus)
+        - C (anecdotal, unverified or mixed)
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Conditions, variety, climate, or anything that limits the value.
