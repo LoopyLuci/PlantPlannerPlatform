@@ -1,8 +1,8 @@
 # ADR-0004: Deterministic rules first; any learned model comes last and is optional
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-11-01
-**Deciders**: agent proposed, human to accept
+**Deciders**: agent proposed; accepted by the project owner on 2026-11-01
 **Affects invariant(s)**: I1, I2
 
 ## Context

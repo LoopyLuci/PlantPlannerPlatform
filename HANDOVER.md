@@ -38,7 +38,7 @@ end of every session, not the start.
 ## Known issues
 
 - **Stale server on port 4010.** It runs code from before this session's capability changes. Restart it (`Ctrl+C`, then `npm start`) before using `feedback.record` or `feedback.list`.
-- The built-in browser pane refused service-worker registration. The offline shell is verified in Chromium through Playwright (`e2e/offline.spec.ts`), not in the pane. Placement moves, adds and removes queue offline (ADR-0011, Proposed). A species opened online can be added offline; its profile is cached on this device. A species never opened online cannot be added offline.
+- The built-in browser pane refused service-worker registration. The offline shell is verified in Chromium through Playwright (`e2e/offline.spec.ts`), not in the pane. Placement moves, adds and removes queue offline (ADR-0011, Accepted). A species opened online can be added offline; its profile is cached on this device. A species never opened online cannot be added offline.
 - **Local pipeline hook not installed.** `npm run ci:hooks` (a pre-push hook through `core.hooksPath`) was denied by the automation classifier as a persistence change. It is not installed. The owner can run it, or approve it in the session. Until then, run `npm run ci` before pushing.
 - The local pipeline does not regenerate the archive; it verifies the committed checksums. The GitHub workflow still regenerates and checks. A decision is needed on whether CI should call `npm run ci` so the two cannot drift.
 - End-to-end tests run in CI as the `e2e` job (Ubuntu, Node 24). The first CI run had not been checked when this line was written; check it before relying on it.
@@ -66,7 +66,7 @@ end of every session, not the start.
 
 ## Blocked on human
 
-- **B-001**: Approve the proposed ADRs `0001` to `0012` in `docs/adr/INDEX.md`. Why: accepted ADRs are immutable, so agents cannot approve them. Suggested decision: accept as written.
+- **B-001** (resolved): ADRs `0001` to `0012` accepted by the project owner on 2026-11-01. Each one is now immutable; a change needs a new ADR.
 - **B-002** (resolved): Licences adopted as proposed. Apache-2.0 for the software (`LICENSE`), CC-BY-4.0 for the knowledge graph (`data/knowledge-graph/LICENSE`). Recorded on the owner's instruction to proceed with the proposed defaults.
 - **B-007** (resolved): The public repository is `LoopyLuci/PlantPlannerPlatform`, the account signed in with GitHub CLI. Created public on the owner's instruction.
 - **B-006**: Decide whether the design transcript export (`We_are_going_to_design_and_develop_a_next_generation_and.md` and `.json` at the repo root) belongs in the repository. Why: it is the raw chat export the requirements came from, about 630 KB each, and it may contain personal material. It is left untracked. Suggested decision: keep it out of the repository, and move it somewhere private.

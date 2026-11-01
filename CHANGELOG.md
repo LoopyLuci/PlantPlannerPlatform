@@ -7,13 +7,13 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 ### Added
 - Local CI pipeline (`scripts/ci.ts`): `npm run ci`, `ci:quick`, `ci:full`. Preflight checks (Node version, pinned Node, required files, installed dependencies, free port, browser, working-tree state), parallel stages, per-stage timeouts that kill the process tree, a run lock with stale-lock recovery, a cross-platform archive checksum check, and a JSON report in `.ci/`. `ci:hooks` installs an opt-in pre-push hook.
 - Performance measurement (`npm run perf:3d`, `e2e/perf/`): 200 plants in the 3D view while orbiting, and plan-edit write latency. Kept out of the pipeline; the journey suite ignores `e2e/perf/`.
-- ADR-0012 (Proposed): corrects the PLAN Phase 0 and Phase 1 status, the I5 enforcement wording, and the git sentence in AGENTS section 3.
+- ADR-0012 (Accepted): corrects the PLAN Phase 0 and Phase 1 status, the I5 enforcement wording, and the git sentence in AGENTS section 3.
 - CI workflow runs the local pipeline: the check job runs `npm run ci -- --skip e2e`, and the e2e job builds and then runs `npm run ci -- --only e2e`.
 - Browser test for a refused offline change: shown as a conflict, and discarding it clears the queue.
 - Plant-library search timing in `e2e/perf/search-timing.spec.ts`.
 - Species profiles are cached on this device when they load, so a species opened online can be added offline.
-- Offline outbox (ADR-0011, Proposed): placement moves, adds and removes made while the server is unreachable are kept in IndexedDB, shown at once, and sent in order with their idempotency keys when the server returns. A refused change is shown as a conflict with a discard action. The last copy of each design, its checks and the species list are cached for an offline start. Unit tests in `apps/web/test/outbox.test.ts`; the journey test is in `e2e/offline.spec.ts`.
-- ADR-0011 (Proposed): offline writes through a browser outbox with idempotent replay and conflicts surfaced to a human (J3).
+- Offline outbox (ADR-0011): placement moves, adds and removes made while the server is unreachable are kept in IndexedDB, shown at once, and sent in order with their idempotency keys when the server returns. A refused change is shown as a conflict with a discard action. The last copy of each design, its checks and the species list are cached for an offline start. Unit tests in `apps/web/test/outbox.test.ts`; the journey test is in `e2e/offline.spec.ts`.
+- ADR-0011 (Accepted): offline writes through a browser outbox with idempotent replay and conflicts surfaced to a human (J3).
 - CI job `e2e`: installs Chromium with Playwright and runs `npm run e2e` on Ubuntu, Node 24; uploads traces on failure.
 - End-to-end tests with Playwright (`npm run e2e`, which builds the web app first): journeys J1 (place, correct by keyboard, reload) and J5 (search, profile), the feedback journey, and the offline shell (J3, shell only). They run against a server on port 4411 with a fresh scratch data directory. Set `PPP_E2E_CHANNEL=msedge` (or `chrome`) to use an installed browser. Typecheck covers the tests.
 - Feedback on verdicts: `feedback.record` and `feedback.list` capabilities, a hash-chained feedback log, a pure router to four suggested routes, and a form in Plant details (ADR-0007).

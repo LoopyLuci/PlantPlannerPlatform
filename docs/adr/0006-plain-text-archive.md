@@ -1,8 +1,8 @@
 # ADR-0006: The plain-text archive is a first-class deliverable
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-11-01
-**Deciders**: agent proposed, human to accept
+**Deciders**: agent proposed; accepted by the project owner on 2026-11-01
 **Affects invariant(s)**: I10
 
 ## Context

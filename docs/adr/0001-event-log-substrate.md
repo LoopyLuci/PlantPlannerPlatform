@@ -1,8 +1,8 @@
 # ADR-0001: Append-only, hash-chained event log as the durable substrate
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-11-01
-**Deciders**: agent proposed, human to accept
+**Deciders**: agent proposed; accepted by the project owner on 2026-11-01
 **Affects invariant(s)**: I6, I7
 
 ## Context

@@ -1,8 +1,8 @@
 # ADR-0012: Correct the PLAN status, invariant I5 wording, and the git rule in AGENTS
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-11-01
-**Deciders**: agent proposed, human to accept
+**Deciders**: agent proposed; accepted by the project owner on 2026-11-01
 **Affects invariant(s)**: I5 (wording only); no invariant's meaning changes
 
 ## Context
@@ -26,9 +26,12 @@ proposed here rather than edited in place.
 
 ## Decision
 
-1. PLAN.md, Phase 0 status becomes **partial**: the kill test and performance check are done; the seed graph
-   (12 species) and the end-to-end journeys (J3 writes offline, not built) are not. Phase 1 status becomes
-   **partial**: built features are listed above; the 60 fps and 100 ms gates are unmeasured on reference hardware.
+1. PLAN.md, Phase 0 status becomes **partial**: the kill test and performance check are done, and the journeys
+   J1, J3 and J5 pass in the end-to-end suite, including offline placement writes (ADR-0011). The seed graph
+   (12 species) is not curated enough to pass the gate. Phase 1 status becomes **partial**: the perspective view,
+   drag-to-move, side elevation and WebGL fallback are built. Measured headless at 200 plants: 60 fps while
+   orbiting, and a plan edit acknowledged in a median of 12 ms. Not measured: the 100 ms plan-to-render gate and
+   frame rate on reference hardware.
 2. DESIGN_PRINCIPLES.md, I5 enforcement reads: "`DesignStore.append` is the only write path to a design log, and
    every `design.*` write capability calls it." The invariant's meaning does not change.
 3. AGENTS.md, section 3, step 7 reads: "Do not commit unless a human asks. Commits follow the approval rule in

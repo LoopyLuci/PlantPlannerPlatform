@@ -52,7 +52,7 @@ If a document is missing, stale, or contradicts the code, stop and escalate (see
 4. Make the smallest change that passes it.
 5. Run the verification suite (section 4).
 6. Update [TODO.md](TODO.md) and [HANDOVER.md](HANDOVER.md), and add a [CHANGELOG.md](CHANGELOG.md) entry under Unreleased.
-7. Do not commit unless a human asks. This repository is not under git yet (see HANDOVER B-003).
+7. Do not commit unless a human asks. Commits follow the approval rule in `CONTRIBUTING.md` (ADR-0010).
 
 ## 4. Verification suite
 

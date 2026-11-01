@@ -1,8 +1,8 @@
 # ADR-0007: Feedback log and deterministic router
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-11-01
-**Deciders**: agent proposed, human to accept
+**Deciders**: agent proposed; accepted by the project owner on 2026-11-01
 **Affects invariant(s)**: I1, I3, I4, I7
 
 ## Context

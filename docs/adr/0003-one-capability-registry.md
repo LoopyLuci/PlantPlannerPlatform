@@ -1,8 +1,8 @@
 # ADR-0003: One capability registry; every adapter is generated from it
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-11-01
-**Deciders**: agent proposed, human to accept
+**Deciders**: agent proposed; accepted by the project owner on 2026-11-01
 **Affects invariant(s)**: I4, I9
 
 ## Context

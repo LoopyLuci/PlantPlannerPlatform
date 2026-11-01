@@ -22,7 +22,7 @@ Archiving needs `confirm: true` and a human-gated determinism class. Nothing rem
 
 **I5. Atomicity is scoped per capability.**
 A write touches one design log. Cross-store work does not exist yet; when it does, it is a saga.
-*Enforced by:* registry check that each capability declares an atomicity class; `design.append` is the only write path.
+*Enforced by:* registry check that each capability declares an atomicity class; `DesignStore.append` is the only write path to a design log, and every `design.*` write capability calls it.
 
 **I6. Derived state is replayable.**
 The design projection can always be rebuilt from its log.
