@@ -1,4 +1,5 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 
 /**
  * Journey J3 (ADR-0011). The editor opens with the server down, keeps moves made offline on this
@@ -255,6 +256,34 @@ test.describe('J3 two tabs share one queue (ADR-0011)', () => {
     expect(await serverDesign(request, baseURL)).toMatchObject({ seq: before.seq + 2 });
     await expect(page.getByRole('alert').filter({ hasText: 'could not be applied' })).toHaveCount(0);
     await expect(other.getByRole('alert').filter({ hasText: 'could not be applied' })).toHaveCount(0);
+  });
+});
+
+test.describe('J3 export waiting changes (ADR-0011)', () => {
+  test('waiting changes can be saved as a file', async ({ page, context }) => {
+    await page.goto('/#/plan');
+    await expect(page.getByRole('heading', { level: 1, name: 'Plan' })).toBeVisible();
+    const status = page.getByRole('status', { name: 'Data status' });
+    await expect(status).toContainText('healthy');
+
+    const nav = page.getByRole('navigation', { name: 'Windows' });
+    await nav.getByRole('button', { name: /^Placed plants\b/ }).click();
+    await page.locator('.placement-row').first().click();
+    await nav.getByRole('button', { name: /^Plan\b/ }).click();
+
+    await context.setOffline(true);
+    await page.keyboard.press('ArrowRight');
+    await expect(status).toContainText('1 waiting to sync');
+
+    const downloaded = page.waitForEvent('download');
+    await page.getByRole('button', { name: 'Export waiting changes' }).click();
+    const download = await downloaded;
+    expect(download.suggestedFilename()).toMatch(/^waiting-changes-\d+\.json$/);
+    const saved = JSON.parse(readFileSync((await download.path()) ?? '', 'utf8')) as {
+      entries: { capability: string; baseSeq: number }[];
+    };
+    expect(saved.entries).toHaveLength(1);
+    expect(saved.entries[0].capability).toBe('design.update_placement');
   });
 });
 

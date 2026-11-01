@@ -498,6 +498,17 @@ export function App() {
     pushToast('Offline changes for this design were discarded.');
   }, [loadDesign, pushToast, setQueuedState]);
 
+  /** Saves the waiting changes as a file, so a person can keep them if this browser's data is lost. */
+  const exportQueued = useCallback(() => {
+    const body = JSON.stringify({ exportedAt: new Date().toISOString(), entries: queued }, null, 2);
+    const url = URL.createObjectURL(new Blob([body], { type: 'application/json' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `waiting-changes-${Date.now()}.json`;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, [queued]);
+
   const conflict = queued.find((entry) => entry.state === 'conflict');
   const placementStatus = (id: string) => evaluation?.placements[id]?.status ?? 'unknown';
 
@@ -943,6 +954,14 @@ export function App() {
           </span>
           <button type="button" className="danger-outline" onClick={() => void discardQueued()}>
             Discard offline changes
+          </button>
+        </div>
+      )}
+      {queued.length > 0 && (
+        <div className="banner-inline">
+          <span className="muted small">Changes made on this device wait here until the server is back.</span>
+          <button type="button" className="ghost" onClick={exportQueued}>
+            Export waiting changes
           </button>
         </div>
       )}
