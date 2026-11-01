@@ -25,7 +25,7 @@ Priority: `P0` blocks the current phase gate · `P1` next · `P2` scheduled · `
 ## P2: scheduled
 
 - [ ] `P2` Authentication, roles and the gateway policy layer across all four interfaces (single principal model).
-- [~] `P2` 3D perspective and side-elevation windows (Phase 1; ADR-0009). Built: perspective view with drag-to-move through the same write as the plan, side elevation, and a side-by-side fallback without WebGL. Not done: 60 fps measured on reference hardware (the built-in pane showed about 53 fps while zooming with 200 plants), 2D-to-3D update within 100 ms measured end to end, labels in 3D, distance-based LOD.
+- [~] `P2` 3D perspective and side-elevation windows (Phase 1; ADR-0009). Built: perspective view with drag-to-move through the same write as the plan, side elevation, and a side-by-side fallback without WebGL. Measured with `npm run perf:3d` in headless Chromium on this machine (not reference hardware): 200 plants held 60 fps while the camera orbited (worst frame 16.8 ms, 180 frames sampled); a plan-edit write takes a median of 12 ms to acknowledge. Not done: the 100 ms gate from a plan edit to the rendered 3D view (the render time is not exposed to the page), frame time on reference hardware, labels in 3D, distance-based LOD.
 - [ ] `P2` Variant generation: CP-SAT or annealing over region constraints, returning Pareto-diverse layouts (Phase 3).
 - [ ] `P2` Design Brief: typed goals, objective weights and biome context, editable and inspectable.
 - [ ] `P2` Durability watchdog as a running process: six probes, tri-state classification, graduated remediation, external beacon (see docs/runbooks/durability-incident.md). Only the one-shot check exists today.

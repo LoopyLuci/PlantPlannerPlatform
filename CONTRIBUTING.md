@@ -49,6 +49,7 @@ npm run ci:full    # standard, plus the 200-kill test and the performance check 
 - A lock file in `.ci/` stops two runs from overlapping. A lock left by a dead process is cleared automatically.
 - Logs are in `.ci/logs/`, and the result of the last run is in `.ci/last-run.json`. Both are git-ignored.
 - `npm run ci -- --only test,archive` or `--skip e2e` runs a chosen set of stages.
+- `npm run perf:3d` measures the 3D frame rate and write latency with 200 plants. It is not part of `npm run ci`, because timings depend on the machine.
 - `npm run ci:hooks` installs an optional pre-push hook that runs `npm run ci` before every push. It is opt-in and changes your local git configuration.
 
 ## The change protocol

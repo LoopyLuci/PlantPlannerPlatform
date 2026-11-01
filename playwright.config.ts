@@ -16,6 +16,8 @@ const dataDir = mkdtempSync(join(tmpdir(), 'ppp-e2e-'));
 
 export default defineConfig({
   testDir: 'e2e',
+  // Timing measurements live in e2e/perf and run with npm run perf:3d, never in the pipeline.
+  testIgnore: ['perf/**'],
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,

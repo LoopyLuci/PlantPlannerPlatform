@@ -66,7 +66,7 @@ end of every session, not the start.
 
 ## Blocked on human
 
-- **B-001**: Approve the proposed ADRs `0001` to `0011` in `docs/adr/INDEX.md`. Why: accepted ADRs are immutable, so agents cannot approve them. Suggested decision: accept as written.
+- **B-001**: Approve the proposed ADRs `0001` to `0012` in `docs/adr/INDEX.md`. Why: accepted ADRs are immutable, so agents cannot approve them. Suggested decision: accept as written.
 - **B-002** (resolved): Licences adopted as proposed. Apache-2.0 for the software (`LICENSE`), CC-BY-4.0 for the knowledge graph (`data/knowledge-graph/LICENSE`). Recorded on the owner's instruction to proceed with the proposed defaults.
 - **B-007** (resolved): The public repository is `LoopyLuci/PlantPlannerPlatform`, the account signed in with GitHub CLI. Created public on the owner's instruction.
 - **B-006**: Decide whether the design transcript export (`We_are_going_to_design_and_develop_a_next_generation_and.md` and `.json` at the repo root) belongs in the repository. Why: it is the raw chat export the requirements came from, about 630 KB each, and it may contain personal material. It is left untracked. Suggested decision: keep it out of the repository, and move it somewhere private.
@@ -81,7 +81,8 @@ end of every session, not the start.
 - `npm run archive`: regenerated (11 files, 0 designs, since the real store is empty). `sha256sum -c checksums.sha256`: all 11 OK.
 - Browser (built-in pane, desktop and 375 px): 3D view draws the starter garden; a drag saved one write (seq 21, then 22) and the store returned the new position; the camera did not orbit; the side elevation toggles axis; the WebGL fallback appears when `getContext` returns null; the Details feedback form renders and shows the stale server's error message; 200 plants: 2 instanced draws per frame, median frame 16.8 ms while zooming; no horizontal scroll at 375 px.
 - `npm run e2e` (Playwright, Edge, fresh scratch data on port 4411): 4 tests passed. J1 place, correct by keyboard and reload; J5 search and profile; feedback recorded and routed; offline shell reopens with the server down.
-- Not verified: the 2D-to-3D latency gate; the 60 fps gate on reference hardware; J3 writes offline (not built); the 50 ms search gate in J5 (not timed).
+- `npm run perf:3d` (headless Chromium, this machine, 200 plants): median frame 16.7 ms (59.9 fps), worst frame 16.8 ms over 180 frames while orbiting; plan-edit write acknowledged in a median of 12 ms. Headless frames may be capped at the display rate, so this shows no drops, not headroom.
+- Not verified: the 100 ms plan-to-3D render gate (the render time is not exposed); the 60 fps gate on reference hardware; J3 writes offline (not built); the 50 ms search gate in J5 (not timed).
 
 ## Session log (most recent first)
 

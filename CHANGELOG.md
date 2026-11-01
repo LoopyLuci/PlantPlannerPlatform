@@ -6,6 +6,8 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 
 ### Added
 - Local CI pipeline (`scripts/ci.ts`): `npm run ci`, `ci:quick`, `ci:full`. Preflight checks (Node version, pinned Node, required files, installed dependencies, free port, browser, working-tree state), parallel stages, per-stage timeouts that kill the process tree, a run lock with stale-lock recovery, a cross-platform archive checksum check, and a JSON report in `.ci/`. `ci:hooks` installs an opt-in pre-push hook.
+- Performance measurement (`npm run perf:3d`, `e2e/perf/`): 200 plants in the 3D view while orbiting, and plan-edit write latency. Kept out of the pipeline; the journey suite ignores `e2e/perf/`.
+- ADR-0012 (Proposed): corrects the PLAN Phase 0 and Phase 1 status, the I5 enforcement wording, and the git sentence in AGENTS section 3.
 - CI workflow runs the local pipeline: the check job runs `npm run ci -- --skip e2e`, and the e2e job builds and then runs `npm run ci -- --only e2e`.
 - ADR-0011 (Proposed): offline writes through a browser outbox with idempotent replay and conflicts surfaced to a human (J3).
 - CI job `e2e`: installs Chromium with Playwright and runs `npm run e2e` on Ubuntu, Node 24; uploads traces on failure.

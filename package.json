@@ -33,6 +33,7 @@
     "ci:quick": "tsx scripts/ci.ts --tier=quick",
     "ci:full": "tsx scripts/ci.ts --tier=full",
     "ci:hooks": "tsx scripts/ci.ts --install-hooks",
+    "perf:3d": "playwright test --config playwright.perf.config.ts",
     "kill-test": "tsx scripts/kill-run.ts",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "test": "vitest run",
