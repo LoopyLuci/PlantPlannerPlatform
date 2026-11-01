@@ -269,6 +269,24 @@ export function traitValue(kg: KnowledgeGraph, urn: string, trait: TraitName): n
   return traitRecord(kg, urn, trait)?.value;
 }
 
+/** Edges indexed by unordered species pair, built once per graph. The design rules ask for many pairs. */
+const edgeIndexes = new WeakMap<KnowledgeGraph, Map<string, CompanionEdge[]>>();
+
+function pairKey(a: string, b: string): string {
+  return a < b ? `${a}\u0000${b}` : `${b}\u0000${a}`;
+}
+
 export function edgesBetween(kg: KnowledgeGraph, a: string, b: string): CompanionEdge[] {
-  return kg.edges.filter((e) => (e.a === a && e.b === b) || (e.a === b && e.b === a));
+  let index = edgeIndexes.get(kg);
+  if (!index) {
+    index = new Map();
+    for (const edge of kg.edges) {
+      const key = pairKey(edge.a, edge.b);
+      const list = index.get(key);
+      if (list) list.push(edge);
+      else index.set(key, [edge]);
+    }
+    edgeIndexes.set(kg, index);
+  }
+  return index.get(pairKey(a, b)) ?? [];
 }

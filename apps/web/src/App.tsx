@@ -325,6 +325,7 @@ export function App() {
       setOverrides({});
       if (options.announce) setAnnounce(options.announce);
       pushToast('Saved on this device. It will sync when the server is back.');
+      if (options.undo) pushToast(options.label, options.undo);
       void syncOutbox();
       return true;
     },

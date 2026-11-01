@@ -23,7 +23,7 @@ end of every session, not the start.
 | Web editor | Nine windows in a side navigation (Plan, 3D view, Side elevation, Site, Plant library, Placed plants, Plant details, Designs, Data health). Live rules, undo, suggestions, feedback form, offline shell (service worker). | `apps/web` |
 | Knowledge graph | `kg-2026.10`, status `seed-unreviewed`, 12 species, 10 companion edges, 4 sources (unchanged) | `data/knowledge-graph` |
 | Rule thresholds | `rules-1.0`, in a versioned file | `config/rules/rules-1.0.json` |
-| Tests | 141 across packages and the web model (`npm run check` passes). Plus the process-kill test (1,000 kills passed) and the performance check (`npm run bench`). | `packages/*/test`, `apps/*/test`, `apps/web/test`, `scripts/` |
+| Tests | 154 across packages and the web model (`npm run check` passes). Plus the process-kill test (1,000 kills passed) and the performance check (`npm run bench`). | `packages/*/test`, `apps/*/test`, `apps/web/test`, `scripts/` |
 
 ## Environment
 
@@ -75,7 +75,7 @@ end of every session, not the start.
 
 ## Verification record (2026-11-01, this session)
 
-- `npm run check`: 12 test files, 141 tests passed; typecheck clean; production build clean (main bundle 277 kB, 3D chunk 562 kB).
+- `npm run check`: 14 test files, 154 tests passed (the 13 added: 10 outbox rules, 3 scale); typecheck clean; production build clean (main bundle 277 kB, 3D chunk 562 kB).
 - `npm run kill-test -- --iterations 1000 --seed 20261101`: 1,000 kills, 21,746 acknowledged writes, 0 failed, 0 interrupted lines repaired.
 - `npm run bench`: 50 plants evaluate in 0.34 ms (median) against a 50 ms gate. 200 plants: 5.7 ms.
 - `npm run archive`: regenerated (11 files, 0 designs, since the real store is empty). `sha256sum -c checksums.sha256`: all 11 OK.

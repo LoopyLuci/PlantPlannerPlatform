@@ -170,3 +170,35 @@ async function designIdOf(request: APIRequestContext, baseURL: string | undefine
   const designs = (listed as { data: { designs: { designId: string; archived: boolean }[] } }).data.designs;
   return designs.find((d) => !d.archived)?.designId ?? '';
 }
+
+test.describe('J3 remove and undo offline (ADR-0011)', () => {
+  test('a plant removed offline and restored by undo ends where it started, after two log events', async ({ page, context, request, baseURL }) => {
+    await page.goto('/#/plan');
+    await expect(page.getByRole('heading', { level: 1, name: 'Plan' })).toBeVisible();
+    const status = page.getByRole('status', { name: 'Data status' });
+    await expect(status).toContainText('healthy');
+    const before = await serverDesign(request, baseURL);
+    const target = before.placements[0];
+
+    const nav = page.getByRole('navigation', { name: 'Windows' });
+    await nav.getByRole('button', { name: /^Placed plants\b/ }).click();
+    await page.locator('.placement-row').first().click();
+    await nav.getByRole('button', { name: /^Plan\b/ }).click();
+
+    await context.setOffline(true);
+    await page.keyboard.press('Delete');
+    await expect(status).toContainText('1 waiting to sync');
+
+    await page.getByRole('button', { name: 'Undo' }).first().click();
+    await expect(status).toContainText('2 waiting to sync');
+    await nav.getByRole('button', { name: /^Placed plants\b/ }).click();
+    await expect(page.locator('.placement-row')).toHaveCount(before.placements.length);
+
+    await context.setOffline(false);
+    await expect(status).not.toContainText('waiting to sync', { timeout: 30_000 });
+    const after = await serverDesign(request, baseURL);
+    expect(after.seq).toBe(before.seq + 2);
+    expect(after.placements.length).toBe(before.placements.length);
+    expect(after.placements.find((p) => p.id === target.id)).toMatchObject({ x: target.x, y: target.y });
+  });
+});

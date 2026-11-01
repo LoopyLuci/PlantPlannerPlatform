@@ -5,6 +5,9 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 ## [Unreleased]
 
 ### Added
+- Scale check at 500 synthetic species (`packages/core/test/scale.test.ts`): the loader and the rules engine at 50 and 200 plants, under the 50 ms gate. The species are generated fixtures, not horticultural data.
+- Browser test for removing a plant offline and undoing it: the server ends where it started after two log events.
+- Candidate citations for the placeholder sources in `docs/curation/citation-candidates.md` (leads for curators, not citations).
 - Local CI pipeline (`scripts/ci.ts`): `npm run ci`, `ci:quick`, `ci:full`. Preflight checks (Node version, pinned Node, required files, installed dependencies, free port, browser, working-tree state), parallel stages, per-stage timeouts that kill the process tree, a run lock with stale-lock recovery, a cross-platform archive checksum check, and a JSON report in `.ci/`. `ci:hooks` installs an opt-in pre-push hook.
 - Performance measurement (`npm run perf:3d`, `e2e/perf/`): 200 plants in the 3D view while orbiting, and plan-edit write latency. Kept out of the pipeline; the journey suite ignores `e2e/perf/`.
 - ADR-0012 (Accepted): corrects the PLAN Phase 0 and Phase 1 status, the I5 enforcement wording, and the git sentence in AGENTS section 3.
@@ -38,12 +41,14 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 - Planning and agent documents: README, AGENTS, PLAN, TODO, HANDOVER, VERSIONING, architecture, principles, data formats, glossary, ADRs 0000-0006, agent protocols, longevity audit, durability runbook.
 
 ### Changed
+- Companion-edge lookup uses an index built once per graph. Evaluating 200 plants with 500 species and 1,000 edges fell from about 118 ms to under 50 ms. The results are unchanged.
 - The editor was split from one continuous workspace into side-navigation windows (user request).
 - `DEFAULT_RULE_CONFIG` and `RULE_CONFIG_VERSION` are removed. Every rule function takes the configuration explicitly, and `versionTriple` takes `ruleConfigVersion`.
 - The MCP server exposes 11 read tools (`feedback.list` added). The limit is 15.
 - The main web bundle no longer includes three.js. The 3D window is fetched when it is first opened.
 
 ### Fixed
+- A change queued offline did not offer Undo; the undo toast is now shown for queued changes too.
 - `x` and `y` are required on placement capabilities, so a missing coordinate can no longer be stored as `NaN`.
 - Undo sent a stale `base_seq`, which returned a conflict. Writes now run through a queue that reads the latest sequence.
 - `design.get` returns its fields at the top level, matching the registry.
