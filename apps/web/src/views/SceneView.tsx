@@ -55,8 +55,16 @@ export function SceneView(props: SceneViewProps) {
   );
 
   useEffect(() => {
-    if (design && sceneRef.current) {
+    const stage = containerRef.current;
+    if (design && sceneRef.current && stage) {
+      // Timing for the 100 ms gate (ADR-0009): from handing the shapes to the scene to the next frame drawn.
+      // Written as data attributes so the browser test can read it without a global.
+      const started = performance.now();
       sceneRef.current.setDesign({ widthM: design.site.widthM, depthM: design.site.depthM }, shapes);
+      requestAnimationFrame(() => {
+        stage.dataset.renderMs = (performance.now() - started).toFixed(1);
+        stage.dataset.renderCount = String(Number(stage.dataset.renderCount ?? '0') + 1);
+      });
     }
   }, [design, shapes]);
 

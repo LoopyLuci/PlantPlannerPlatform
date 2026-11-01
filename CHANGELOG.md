@@ -5,6 +5,7 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 ## [Unreleased]
 
 ### Added
+- 3D render timing for the 100 ms gate: the scene update plus the next frame is written to the stage's `data-render-ms` attribute, and `npm run perf:3d` reports it as `sceneRenderMs` (60 to 64 ms at 200 plants in headless Chromium).
 - Closing or reloading the page while changes wait for the server asks the person to confirm. Clearing site data in the browser's settings cannot be intercepted, so it is not covered. Browser test in `e2e/offline.spec.ts`.
 - Scale check at 500 synthetic species (`packages/core/test/scale.test.ts`): the loader and the rules engine at 50 and 200 plants, under the 50 ms gate. The species are generated fixtures, not horticultural data.
 - Browser test for removing a plant offline and undoing it: the server ends where it started after two log events.

@@ -9,8 +9,9 @@ import { join } from 'node:path';
  * the numbers against the gates. The results are written to test-results/perf-3d.json.
  *
  * Gates (PLAN Phase 1): 200 plants at 60 fps; a 2D edit reaches 3D within 100 ms.
- * The 100 ms gate needs the render time, which is not exposed to the page, so this
- * measures only the write round trip. The render part is still unmeasured.
+ * The 100 ms gate is split: this measures the write round trip, and the scene update plus
+ * one frame at mount (`sceneRenderMs`, read from the stage's data attributes). The fetch
+ * that precedes a mount is not included, so the sum is a lower bound on the real gate.
  */
 
 const PLANTS = 200;
@@ -62,6 +63,10 @@ test('3D view frame rate with 200 plants, and plan-edit write latency', async ({
   // Frame rate: open the 3D view and sample animation frames while the camera is moved.
   await page.goto('/#/scene');
   await expect(page.locator('canvas').first()).toBeVisible({ timeout: 30_000 });
+  // Render part of the 100 ms gate: the scene update for these 200 plants and the frame after it.
+  const stage = page.locator('.scene-stage');
+  await expect.poll(() => stage.getAttribute('data-render-count'), { timeout: 30_000 }).not.toBeNull();
+  const sceneRenderMs = Number(await stage.getAttribute('data-render-ms'));
   const box = await page.locator('canvas').first().boundingBox();
   if (!box) throw new Error('3D canvas has no size');
   const centre = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
@@ -100,7 +105,8 @@ test('3D view frame rate with 200 plants, and plan-edit write latency', async ({
     frames: intervals.length,
     writeMedianMs: Number([...writes].sort((a, b) => a - b)[Math.floor(writes.length / 2)]),
     writeMaxMs: Math.max(...writes),
-    note: 'Headless Chromium on this machine, not reference hardware. The 100 ms render gate is not measured here.',
+    sceneRenderMs: Number(sceneRenderMs.toFixed(1)),
+    note: 'Headless Chromium on this machine, not reference hardware. sceneRenderMs is the scene update plus one frame at 200 plants; it excludes the write and the fetch that precede it.',
   };
   mkdirSync('test-results', { recursive: true });
   writeFileSync(join('test-results', 'perf-3d.json'), `${JSON.stringify(result, null, 2)}\n`);
