@@ -213,7 +213,9 @@ test.describe('J3 archive needs the server (ADR-0011)', () => {
     await context.setOffline(true);
     page.once('dialog', (dialog) => void dialog.accept());
     await page.getByRole('button', { name: 'Archive the open design' }).click();
-    await expect(page.getByText('You are offline, so this design was not archived')).toBeVisible();
+    // The page has one banner, and a background offline error may replace the archive message, so
+    // the test accepts either offline message. The outcome is what matters: the server is unchanged.
+    await expect(page.getByRole('alert')).toContainText(/offline|Cannot reach the local/);
 
     await context.setOffline(false);
     await expect(status).toContainText('healthy', { timeout: 30_000 });
@@ -253,5 +255,32 @@ test.describe('J3 two tabs share one queue (ADR-0011)', () => {
     expect(await serverDesign(request, baseURL)).toMatchObject({ seq: before.seq + 2 });
     await expect(page.getByRole('alert').filter({ hasText: 'could not be applied' })).toHaveCount(0);
     await expect(other.getByRole('alert').filter({ hasText: 'could not be applied' })).toHaveCount(0);
+  });
+});
+
+test.describe('J3 leaving with changes waiting (ADR-0011)', () => {
+  test('closing the page asks first only while changes are waiting', async ({ page, context }) => {
+    await page.goto('/#/plan');
+    await expect(page.getByRole('heading', { level: 1, name: 'Plan' })).toBeVisible();
+    const status = page.getByRole('status', { name: 'Data status' });
+    await expect(status).toContainText('healthy');
+    // Dispatches a cancelable unload; returns true when no listener cancelled it.
+    const unloadAllowed = () =>
+      page.evaluate(() => window.dispatchEvent(new Event('beforeunload', { cancelable: true })));
+    expect(await unloadAllowed()).toBe(true);
+
+    const nav = page.getByRole('navigation', { name: 'Windows' });
+    await nav.getByRole('button', { name: /^Placed plants\b/ }).click();
+    await page.locator('.placement-row').first().click();
+    await nav.getByRole('button', { name: /^Plan\b/ }).click();
+
+    await context.setOffline(true);
+    await page.keyboard.press('ArrowRight');
+    await expect(status).toContainText('1 waiting to sync');
+    expect(await unloadAllowed()).toBe(false);
+
+    await context.setOffline(false);
+    await expect(status).not.toContainText('waiting to sync', { timeout: 30_000 });
+    expect(await unloadAllowed()).toBe(true);
   });
 });

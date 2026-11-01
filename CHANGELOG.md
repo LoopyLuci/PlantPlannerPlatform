@@ -5,6 +5,7 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 ## [Unreleased]
 
 ### Added
+- Closing or reloading the page while changes wait for the server asks the person to confirm. Clearing site data in the browser's settings cannot be intercepted, so it is not covered. Browser test in `e2e/offline.spec.ts`.
 - Scale check at 500 synthetic species (`packages/core/test/scale.test.ts`): the loader and the rules engine at 50 and 200 plants, under the 50 ms gate. The species are generated fixtures, not horticultural data.
 - Browser test for removing a plant offline and undoing it: the server ends where it started after two log events.
 - Candidate citations for the placeholder sources in `docs/curation/citation-candidates.md` (leads for curators, not citations).

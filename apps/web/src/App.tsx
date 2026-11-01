@@ -474,6 +474,19 @@ export function App() {
     };
   }, [syncOutbox]);
 
+  // Closing or reloading the page while changes wait asks the person first. The queue survives a
+  // reload, but it is not sent until the server is back. Clearing site data in the browser's own
+  // settings cannot be intercepted by the page.
+  useEffect(() => {
+    if (queued.length === 0) return;
+    const warn = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [queued.length]);
+
   /** Drops every queued change for the open design. A person decides this; nothing is merged. */
   const discardQueued = useCallback(async () => {
     const outbox = outboxRef.current;
