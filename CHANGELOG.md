@@ -6,6 +6,7 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 
 ### Added
 - Local CI pipeline (`scripts/ci.ts`): `npm run ci`, `ci:quick`, `ci:full`. Preflight checks (Node version, pinned Node, required files, installed dependencies, free port, browser, working-tree state), parallel stages, per-stage timeouts that kill the process tree, a run lock with stale-lock recovery, a cross-platform archive checksum check, and a JSON report in `.ci/`. `ci:hooks` installs an opt-in pre-push hook.
+- CI workflow runs the local pipeline: the check job runs `npm run ci -- --skip e2e`, and the e2e job builds and then runs `npm run ci -- --only e2e`.
 - ADR-0011 (Proposed): offline writes through a browser outbox with idempotent replay and conflicts surfaced to a human (J3).
 - CI job `e2e`: installs Chromium with Playwright and runs `npm run e2e` on Ubuntu, Node 24; uploads traces on failure.
 - End-to-end tests with Playwright (`npm run e2e`, which builds the web app first): journeys J1 (place, correct by keyboard, reload) and J5 (search, profile), the feedback journey, and the offline shell (J3, shell only). They run against a server on port 4411 with a fresh scratch data directory. Set `PPP_E2E_CHANNEL=msedge` (or `chrome`) to use an installed browser. Typecheck covers the tests.

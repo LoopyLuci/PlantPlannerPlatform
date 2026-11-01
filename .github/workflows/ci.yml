@@ -27,8 +27,8 @@ jobs:
           node-version: ${{ matrix.node }}
           cache: npm
       - run: npm ci
-      - name: Typecheck, tests and production build
-        run: npm run check
+      - name: Local pipeline without the browser stage (preflight, typecheck, tests, archive, build)
+        run: npm run ci -- --skip e2e
       - name: Regenerate the plain-text archive and verify its checksums
         shell: bash
         run: |
@@ -47,8 +47,10 @@ jobs:
       - run: npm ci
       - name: Install Chromium for Playwright
         run: npx playwright install --with-deps chromium
-      - name: Build the app and run the journey tests
-        run: npm run e2e
+      - name: Build the app, then run the journey tests through the local pipeline
+        run: |
+          npm run build
+          npm run ci -- --only e2e
       - name: Keep the trace of any failed journey
         if: failure()
         uses: actions/upload-artifact@v4
