@@ -2,7 +2,7 @@
 
 **Last updated**: 2026-11-01 by agent (Claude, session 6d7b425e, second pass)
 **Phase**: 0 (nearly complete) and the first half of Phase 1. See [PLAN.md](PLAN.md).
-**Git**: repository on `main`. First commit `1091e96` (`chore: initial foundation`). The design transcript export at the repo root is untracked (see B-006).
+**Git**: public repository https://github.com/LoopyLuci/PlantPlannerPlatform on `main`. CI passed on all four check jobs and the 1,000-kill job (run 41315613204 and a manual run). The design transcript export stays out of the repository (B-006).
 
 ## Read this first
 
