@@ -67,7 +67,7 @@ Priority: `P0` blocks the current phase gate · `P1` next · `P2` scheduled · `
 - [x] B-007 Public repository is `LoopyLuci/PlantPlannerPlatform`.
 - [x] B-003 Approved and done: `git init` on `main`, first commit `1091e96`.
 - [!] B-006 Decide whether the design transcript export at the repo root belongs in the repository. It is untracked for now.
-- [!] B-004 Verify the seed citations in `data/knowledge-graph/sources.csv`. Four sources are placeholders (`needs_specific_citation`, `not_a_citable_source`). This also blocks the P0 seed expansion.
+- [!] B-004 Verify the seed citations in `data/knowledge-graph/sources.csv`. Four sources are placeholders (`needs_specific_citation`, `not_a_citable_source`). This also blocks the P0 seed expansion. Leads for two of the placeholders (Solanaceae disease sharing, nutrient competition) are in [docs/curation/citation-candidates.md](docs/curation/citation-candidates.md); they need full-text checks before use.
 - [!] B-005 Confirm the feedback routes (ADR-0007) and who reviews the curation queue.
 
 ## Done (recent)
