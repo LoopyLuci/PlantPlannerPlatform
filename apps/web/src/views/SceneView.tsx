@@ -2,9 +2,31 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import type { DesignView, EvaluationView, SpeciesSummary } from '../api';
 import { type Point } from '../model';
 import { PlantScene } from '../Scene3D';
-import { sceneShapes } from '../scene';
+import { type PlantShape, sceneShapes } from '../scene';
 import { ElevationView } from './ElevationView';
 import { PlantList } from './PlantList';
+
+/**
+ * Builds one hidden scene and compiles its shaders, so the first 3D window the person opens does not
+ * wait for them (ADR-0013). Without WebGL this does nothing; the side elevation is used instead.
+ */
+export function warmUpScene(): void {
+  const host = document.createElement('div');
+  host.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;visibility:hidden';
+  document.body.appendChild(host);
+  try {
+    const scene = new PlantScene(host, { onSelect: () => undefined, onMove: () => undefined });
+    const dummy: PlantShape = { id: 'warm-up', name: 'warm-up', status: 'unknown' as PlantShape['status'], x: 0.5, y: 0.5, canopyRadiusM: 0.3, heightM: 1, heightRecorded: true };
+    scene.setDesign({ widthM: 1, depthM: 1 }, [dummy]);
+    scene.warmUp();
+    scene.dispose();
+  } catch {
+    // WebGL is unavailable: nothing to warm up.
+  } finally {
+    host.remove();
+    document.documentElement.dataset.sceneWarm = 'true';
+  }
+}
 
 export interface SceneViewProps {
   design: DesignView | null;

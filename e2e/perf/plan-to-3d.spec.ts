@@ -45,11 +45,11 @@ async function openSceneTimed(page: import('@playwright/test').Page): Promise<nu
 test('a plan edit reaches the 3D view within the 100 ms gate', async ({ page, request, baseURL }) => {
   test.setTimeout(120_000);
   // ADR-0013: the 3D chunk is prefetched when idle. Wait for that download, so the first open measures the warm path.
-  const prefetched = page.waitForResponse((response) => /SceneView-.*\.js$/.test(response.url()), { timeout: 60_000 });
+  // The module is prefetched and its shaders are compiled in idle time; wait for both (see ADR-0013).
   await page.goto('/#/plan');
   await expect(page.getByRole('heading', { level: 1, name: 'Plan' })).toBeVisible();
   await expect(page.getByRole('status', { name: 'Data status' })).toContainText('healthy');
-  await prefetched;
+  await page.waitForFunction(() => document.documentElement.dataset.sceneWarm === 'true', undefined, { timeout: 60_000 });
 
   const nav = page.getByRole('navigation', { name: 'Windows' });
   await nav.getByRole('button', { name: /^Placed plants\b/ }).click();

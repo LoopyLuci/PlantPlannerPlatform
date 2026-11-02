@@ -128,6 +128,11 @@ export class PlantScene {
     this.requestRender();
   }
 
+  /** Compiles the materials of the current scene now, so the first frame the person sees does not wait for shaders. */
+  warmUp(): void {
+    this.renderer.compile(this.scene, this.camera);
+  }
+
   setSelected(id: string | null): void {
     this.selectedId = id;
     this.updateRing();

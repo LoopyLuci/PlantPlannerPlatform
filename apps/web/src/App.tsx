@@ -496,7 +496,18 @@ export function App() {
     const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
     if (view !== 'scene' && (connection?.saveData || /2g/.test(connection?.effectiveType ?? ''))) return;
     const idle = window.requestIdleCallback ?? ((callback: () => void) => window.setTimeout(callback, 1));
-    const load = () => void import('./views/SceneView').then(setSceneModule);
+    // Warm-up compiles the shaders. When the person is already on the 3D view it runs now; otherwise it
+    // waits for an idle moment, so it does not interrupt editing.
+    const load = () =>
+      void import('./views/SceneView').then((module) => {
+        if (view === 'scene') {
+          module.warmUpScene();
+          setSceneModule(module);
+        } else {
+          setSceneModule(module);
+          idle(() => module.warmUpScene());
+        }
+      });
     if (view === 'scene') load();
     else idle(load);
   }, [hasDesign, sceneModule, view]);
