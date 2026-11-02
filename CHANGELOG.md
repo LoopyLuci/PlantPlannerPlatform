@@ -4,9 +4,12 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 
 ## [Unreleased]
 
+### Changed
+- The 3D view's module is prefetched when the app is idle, after the first design loads (ADR-0013), and held in state instead of a `React.lazy` component. Skipped on data-saver and 2G connections. The first 3D open fell from about 398 ms to 146 to 157 ms in headless Chromium; it still misses the 100 ms gate (see HANDOVER).
+
 ### Added
 - "Export waiting changes" saves the outbox as a JSON file while changes wait to sync, so they can be kept if this browser's data is lost. Browser test in `e2e/offline.spec.ts`.
-- Plan-to-3D timing (`e2e/perf/plan-to-3d.spec.ts`, `npm run perf:3d`): a keyboard move in the plan, saved, then the 3D view opened. Warm open 37 ms; the first open takes 394 ms because it loads the 3D chunk. Results go to `test-results/perf-plan-to-3d.json`.
+- Plan-to-3D timing (`e2e/perf/plan-to-3d.spec.ts`, `npm run perf:3d`): a keyboard move in the plan, saved, then the 3D view opened. Warm open 37 to 58 ms; the first open took 394 ms before the module was prefetched and held in state, and 146 to 157 ms after. Results go to `test-results/perf-plan-to-3d.json`.
 - 3D render timing for the 100 ms gate: the scene update plus the next frame is written to the stage's `data-render-ms` attribute, and `npm run perf:3d` reports it as `sceneRenderMs` (60 to 66 ms at 200 plants in headless Chromium).
 - Closing or reloading the page while changes wait for the server asks the person to confirm. Clearing site data in the browser's settings cannot be intercepted, so it is not covered. Browser test in `e2e/offline.spec.ts`.
 - Scale check at 500 synthetic species (`packages/core/test/scale.test.ts`): the loader and the rules engine at 50 and 200 plants, under the 50 ms gate. The species are generated fixtures, not horticultural data.

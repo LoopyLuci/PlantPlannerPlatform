@@ -1,8 +1,8 @@
 # ADR-0013: Prefetch the 3D view's code when the app is idle
 
-**Status**: Proposed
+**Status**: Accepted
 **Date**: 2026-11-01
-**Deciders**: agent proposed, human to accept
+**Deciders**: agent proposed; accepted by the project owner on 2026-11-01
 **Affects invariant(s)**: I2 (the platform works with no learned model; this touches only the web app's loading)
 
 ## Context

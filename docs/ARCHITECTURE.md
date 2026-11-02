@@ -63,7 +63,7 @@ The web app is a shell with a side navigation. Each window is a view selected by
 
 The plan canvas draws from the same verdicts the details window shows, so the picture and the explanation cannot disagree.
 
-Nine windows: Plan (SVG), 3D view (three.js, loaded on demand), Side elevation (SVG), Site, Plant library, Placed plants, Plant details (with the feedback form), Designs, Data health.
+Nine windows: Plan (SVG), 3D view (three.js; its module is prefetched when idle and held in state, ADR-0013), Side elevation (SVG), Site, Plant library, Placed plants, Plant details (with the feedback form), Designs, Data health.
 
 - **3D view.** Each plant is an instanced crown and stem. A drag previews the move and then saves it through `design.update_placement`, the same write as the plan. The 3D view restores the saved positions when the drag ends. Without WebGL it shows the side elevation instead. See ADR-0009.
 - **Offline shell.** In production builds, a service worker keeps the app's own files. It is network-first, and it serves the last copy when the server is down. It never caches `/api/`.

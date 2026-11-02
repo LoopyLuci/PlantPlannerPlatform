@@ -1,6 +1,6 @@
 # ADR index
 
-Accepted ADRs are immutable. New decisions add new ADRs. Every ADR from 0001 to 0012 is **Accepted**, by the project owner on 2026-11-01 (HANDOVER B-001). ADR-0013 is **Proposed** and waits for the project owner.
+Accepted ADRs are immutable. New decisions add new ADRs. Every ADR from 0001 to 0013 is **Accepted** by the project owner on 2026-11-01 (HANDOVER B-001).
 
 | # | Title | Status | Affects |
 |---|---|---|---|
@@ -16,6 +16,6 @@ Accepted ADRs are immutable. New decisions add new ADRs. Every ADR from 0001 to 
 | 0010 | Public repository and contribution model | Accepted | I1, I3 |
 | 0011 | Offline writes through a browser outbox (J3) | Accepted | I3, I4, I5, I7 |
 | 0012 | Correct the PLAN status, I5 wording, and the git rule in AGENTS | Accepted | I5 (wording) |
-| 0013 | Prefetch the 3D view's code when the app is idle | Proposed | I2 (loading only) |
+| 0013 | Prefetch the 3D view's code when the app is idle | Accepted | I2 (loading only) |
 
 To add an ADR: copy `0000-template.md` to `NNNN-short-title.md`, fill it in, add a row here, and ask a human to review it.
