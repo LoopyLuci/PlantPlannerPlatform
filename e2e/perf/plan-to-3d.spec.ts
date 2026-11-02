@@ -8,8 +8,9 @@ import { join } from 'node:path';
  *
  * The edit is a keyboard move in the plan. Its write is sent after the nudge settles, and the
  * editor reloads the design from the server. The 3D view is then opened, and the time is taken
- * from the click on "3D view" to the first frame that draws the design. The first open also
- * loads the 3D chunk, so it is reported separately from later opens.
+ * from the click on "3D view" to the first frame that draws the design. The 3D chunk is prefetched
+ * when idle (ADR-0013), and the test waits for that download, so both opens measure the same path.
+ * Before ADR-0013 the first open included the chunk download (394 ms here).
  *
  * Results are written to test-results/perf-plan-to-3d.json.
  */
@@ -43,9 +44,12 @@ async function openSceneTimed(page: import('@playwright/test').Page): Promise<nu
 
 test('a plan edit reaches the 3D view within the 100 ms gate', async ({ page, request, baseURL }) => {
   test.setTimeout(120_000);
+  // ADR-0013: the 3D chunk is prefetched when idle. Wait for that download, so the first open measures the warm path.
+  const prefetched = page.waitForResponse((response) => /SceneView-.*\.js$/.test(response.url()), { timeout: 60_000 });
   await page.goto('/#/plan');
   await expect(page.getByRole('heading', { level: 1, name: 'Plan' })).toBeVisible();
   await expect(page.getByRole('status', { name: 'Data status' })).toContainText('healthy');
+  await prefetched;
 
   const nav = page.getByRole('navigation', { name: 'Windows' });
   await nav.getByRole('button', { name: /^Placed plants\b/ }).click();
@@ -70,7 +74,7 @@ test('a plan edit reaches the 3D view within the 100 ms gate', async ({ page, re
     secondOpenMs: Number(secondOpen.toFixed(1)),
     sceneDrawMs: Number(stageMs.toFixed(1)),
     gateMs: 100,
-    note: 'Headless Chromium on this machine, not reference hardware. The first open includes loading the 3D chunk.',
+    note: 'Headless Chromium on this machine, not reference hardware. The 3D chunk was prefetched before the first open (ADR-0013).',
   };
   mkdirSync('test-results', { recursive: true });
   writeFileSync(join('test-results', 'perf-plan-to-3d.json'), `${JSON.stringify(result, null, 2)}\n`);

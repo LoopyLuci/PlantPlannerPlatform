@@ -1,4 +1,4 @@
-import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
   ApiUnreachableError,
   type CandidateView,
@@ -33,8 +33,6 @@ import { sceneShapes } from './scene';
 import { DetailsView, type FeedbackInput, ROUTE_LABELS } from './views/DetailsView';
 import { ElevationView } from './views/ElevationView';
 
-/** The 3D window loads three.js, so it is fetched only when the window is opened. */
-const SceneView = lazy(() => import('./views/SceneView').then((module) => ({ default: module.SceneView })));
 import { HealthView } from './views/HealthView';
 import { PlacementsView } from './views/PlacementsView';
 import { PlanView } from './views/PlanView';
@@ -487,6 +485,22 @@ export function App() {
     return () => window.removeEventListener('beforeunload', warn);
   }, [queued.length]);
 
+  // The 3D window loads three.js, so its module is fetched only when needed. ADR-0013: once a design is
+  // on screen, fetch it while the browser is idle. The module is then held in state, so the first open
+  // renders at once instead of suspending on a lazy component (React.lazy suspends even when cached).
+  // Skipped on data-saver and 2G connections.
+  const [sceneModule, setSceneModule] = useState<typeof import('./views/SceneView') | null>(null);
+  const hasDesign = design !== null;
+  useEffect(() => {
+    if (!hasDesign || sceneModule) return;
+    const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+    if (view !== 'scene' && (connection?.saveData || /2g/.test(connection?.effectiveType ?? ''))) return;
+    const idle = window.requestIdleCallback ?? ((callback: () => void) => window.setTimeout(callback, 1));
+    const load = () => void import('./views/SceneView').then(setSceneModule);
+    if (view === 'scene') load();
+    else idle(load);
+  }, [hasDesign, sceneModule, view]);
+
   /** Drops every queued change for the open design. A person decides this; nothing is merged. */
   const discardQueued = useCallback(async () => {
     const outbox = outboxRef.current;
@@ -817,20 +831,20 @@ export function App() {
       );
       break;
     case 'scene':
-      content = (
-        <Suspense fallback={<p className="muted">Loading the 3D view…</p>}>
-          <SceneView
-            design={design}
-            evaluation={evaluation}
-            speciesByUrn={speciesByUrn}
-            selectedId={selectedId}
-            onSelect={selectPlant}
-            onMove={(id, point) => {
-              const placement = design?.placements.find((p) => p.id === id);
-              if (placement) void movePlacement(placement, point);
-            }}
-          />
-        </Suspense>
+      content = sceneModule ? (
+        <sceneModule.SceneView
+          design={design}
+          evaluation={evaluation}
+          speciesByUrn={speciesByUrn}
+          selectedId={selectedId}
+          onSelect={selectPlant}
+          onMove={(id, point) => {
+            const placement = design?.placements.find((p) => p.id === id);
+            if (placement) void movePlacement(placement, point);
+          }}
+        />
+      ) : (
+        <p className="muted">Loading the 3D view…</p>
       );
       break;
     case 'elevation':
