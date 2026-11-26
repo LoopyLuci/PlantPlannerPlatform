@@ -8,6 +8,9 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 - The 3D view's module is prefetched when the app is idle, after the first design loads (ADR-0013), and held in state instead of a `React.lazy` component. Skipped on data-saver and 2G connections. The first 3D open fell from about 398 ms to 84 to 104 ms in headless Chromium, which is at the 100 ms gate but not reliably under it (see HANDOVER).
 - A hidden scene compiles the 3D shaders in idle time after the module loads (`warmUpScene`, `PlantScene.warmUp`), so the first open does not wait for them. It runs at once if the person is already on the 3D view.
 
+### Added
+- Android 0.1.2: touch plan editor. Tap a point to select it, drag a point to move it (its distance and bearing are recomputed, and so are the next point's), drag the background to pan, pinch to zoom, Fit to reset. A north arrow and scale bar are drawn.
+
 ### Fixed
 - Android 0.1.1: a saved `.sitescan` kept its name. Saving with a zip MIME type made Android add `.zip` (`x.sitescan.zip`).
 
