@@ -18,13 +18,19 @@ import {
 import {
   type DesignIntegrity,
   type FeedbackEntry,
+  placementsCsv,
+  placementsGeoJson,
+  sha256Bytes,
   exportPlainArchive,
   sha256Hex,
   type StoredEvent,
 } from '@ppp/store';
+import { dirname, join } from 'node:path';
+import { mkdir, writeFile } from 'node:fs/promises';
 import type { ServiceContext } from './context';
 import { CapabilityError } from './errors';
 import { STARTER_GARDEN } from './templates';
+import { Watchdog } from './watchdog';
 
 /**
  * One handler per capability id. The registry defines the contract; these
@@ -179,6 +185,24 @@ export const HANDLERS: Record<string, Handler> = {
         species: ctx.kg.species.size,
         edges: ctx.kg.edges.length,
       },
+    };
+  },
+
+  'durability.watchdog_status': async (ctx) => {
+    const watchdog = new Watchdog({
+      store: ctx.store,
+      version: {
+        modelVersion: MODEL_VERSION,
+        graphVersion: ctx.kg.graphVersion,
+        ruleConfigVersion: ctx.rules.version,
+      },
+      beaconUrl: process.env.PPP_DURABILITY_BEACON_URL,
+    });
+    const report = await watchdog.runNow();
+    return {
+      status: report.status,
+      probes: report.probes,
+      actions: report.actions,
     };
   },
 
@@ -502,6 +526,53 @@ export const HANDLERS: Record<string, Handler> = {
       { expectedSeq: input.base_seq as number | undefined },
     );
     return { designId, seq: result.event.seq, archived: true, replayed: result.replayed, changed: true };
+  },
+
+  'design.export_planting_plan': async (ctx, input, meta) => {
+    const designId = assertDesignId(input.design_id);
+    const outDir = String(input.out_dir ?? '');
+    if (!outDir || typeof outDir !== 'string' || /[\0\r\n]/.test(outDir)) {
+      throw new CapabilityError('validation_error', 'out_dir must be a non-empty path without NUL or newline characters', { field: 'out_dir' });
+    }
+    const state = await loadDesign(ctx, designId);
+    const kg = ctx.kg;
+    const generatedAt = ctx.now().toISOString();
+    const files: { path: string; bytes: number; sha256: string }[] = [];
+    const put = async (relPath: string, content: string | Buffer) => {
+      const full = join(outDir, ...relPath.split('/'));
+      await mkdir(dirname(full), { recursive: true });
+      const buf = Buffer.isBuffer(content) ? content : Buffer.from(content, 'utf8');
+      await writeFile(full, buf);
+      files.push({ path: relPath, bytes: buf.length, sha256: sha256Bytes(buf) });
+    };
+
+    // File contents carry no timestamp, so the same design always exports the same bytes.
+    await put(`designs/${designId}/design.json`, JSON.stringify({
+      design_id: designId,
+      name: state.name,
+      archived: state.archived,
+      head_seq: state.seq,
+      site: state.site,
+      graph_version: kg.graphVersion,
+    }, null, 2) + '\n');
+
+    await put(`designs/${designId}/placements.csv`, placementsCsv(state, kg));
+    await put(`designs/${designId}/placements.geojson`, `${JSON.stringify(placementsGeoJson(state, kg), null, 2)}\n`);
+    await put(`designs/${designId}/README.md`, `# Planting plan: ${state.name}\n\nDesign ${designId}, site ${state.site.widthM}m x ${state.site.depthM}m, ${Object.keys(state.placements).length} placements.\n\nFiles:\n- placements.csv (placement_id, species_urn, common_name, scientific_name, x_m, y_m, footprint_m, pinned)\n- placements.geojson (GeoJSON FeatureCollection of the placements)\n- README.md (this file)\n- checksums.sha256 (sha256 of every file above)\n`);
+
+    const checksumLines = files.map((f) => `${f.sha256}  ${f.path}`).join('\n') + '\n';
+    await writeFile(join(outDir, 'checksums.sha256'), checksumLines);
+
+    // The export regenerates its files on every call; it does not replay a stored result.
+    return {
+      out_dir: outDir,
+      designs: 1,
+      species: kg.species.size,
+      generated_at: generatedAt,
+      replayed: false,
+      files,
+      checksum_lines: checksumLines,
+    };
   },
 
   'archive.export_plain': async (ctx) => {

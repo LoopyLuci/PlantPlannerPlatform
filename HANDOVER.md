@@ -2,7 +2,7 @@
 
 **Last updated**: 2026-11-02 by agent (Claude, session 6d7b425e, seventh pass: handover audit)
 **Phase**: 0 (nearly complete) and the first half of Phase 1. See [PLAN.md](PLAN.md).
-**Git**: public repository https://github.com/LoopyLuci/PlantPlannerPlatform on `main`, at `4995c9e`. Hosted CI passed on `4995c9e` and `7cdeb13`. The design transcript export stays out of the repository (B-006).
+**Git**: public repository https://github.com/LoopyLuci/PlantPlannerPlatform on `main`, at `b29a5a4`. Uncommitted on top: the durability watchdog and `design.export_planting_plan` (see the 2026-11-26 session log entry). Hosted CI passed on `4995c9e` and `7cdeb13`. The design transcript export stays out of the repository (B-006).
 
 ## Read this first
 
@@ -13,7 +13,7 @@ end of every session, not the start.
 
 | Area | State | Where |
 |---|---|---|
-| Capability registry | 19 capabilities. 11 are MCP read tools (limit 15). Validated by tests. | `packages/registry` |
+| Capability registry | 21 capabilities. 11 are MCP read tools (limit 15). Validated by tests. | `packages/registry` |
 | Core logic | Rules engine `rules-1.0` (thresholds from a file), knowledge-graph loader with an edge index, design reducer, feedback router, canonical JSON | `packages/core` |
 | Storage | Hash-chained NDJSON per design, snapshots, projection cache, integrity check, torn-tail repair, feedback log, plain-text archive | `packages/store` |
 | Services | `dispatch()`, one handler per capability, starter template | `packages/services` |
@@ -79,11 +79,16 @@ end of every session, not the start.
 - **B-008**: Decide whether to accept the site-data risk, or keep a server-side copy of queued changes. Why: clearing browser data loses queued offline changes, and the page cannot warn about it. Suggested decision: accept the risk, with the export button as mitigation. A server-side copy needs its own ADR, because it changes how offline writes apply.
 - **B-009**: Run `npm run perf:3d` on the target laptop and record the numbers in the docs. Why: the 100 ms gate and the 60 fps gate are only measured on this machine. Suggested decision: run it once with the browser installed, and send the contents of `test-results/perf-3d.json` and `test-results/perf-plan-to-3d.json`.
 
-## Latest verification (2026-11-02)
+## Latest verification (2026-11-26)
 
-- `npm run ci:full` with `PPP_E2E_CHANNEL=msedge`: passed (typecheck, 154 unit tests, archive checksums, build, e2e, kill-test, bench), 111 s.
+- 2026-11-26: `npm run typecheck` clean and `npm test` 167 of 167 passing, including the watchdog and planting-plan export tests. `npm run build` was not re-run in this pass.
+- `npm run check` clean on 2026-11-21, before the export work: typecheck, 164 unit tests, build.
+- Watchdog capability `durability.watchdog_status` over the live HTTP API: status
+  healthy with six probes (`chainIntegrity`, `tornTail`, `snapshotConsistent`,
+  `eventLoopLag`, `memoryRss`, `heartBeat`) and the version triple. Server boots
+  with a background watchdog process (`PPP_WATCHDOG=1`).
+
 - Hosted CI: `4995c9e` and `7cdeb13` passed on GitHub. `26cc26f` was not checked.
-- Offline journeys (`e2e/offline.spec.ts`): 9 of 9 pass.
 - `npm run perf:3d` (headless Chromium, this Windows machine): 200 plants: frame median 16.7 ms (59.9 fps), worst 16.8 ms over 180 frames; write median 12 to 14 ms; scene update plus first frame 60 to 66 ms; search median 10.2 ms at 12 species (worst 12 ms, gate 50 ms).
 - Plan-to-3D (`e2e/perf/plan-to-3d.spec.ts`): first open 84, 98 and 104 ms across three runs; later opens 61 to 68 ms.
 - `npm run kill-test -- --iterations 1000 --seed 20261101` (2026-11-01): 1,000 kills, 21,746 acknowledged writes, 0 failed, 0 interrupted lines repaired.
@@ -94,7 +99,9 @@ end of every session, not the start.
 
 | Date | Agent | Summary | State after |
 |---|---|---|---|
-| 2026-11-02 | agent (6d7b425e, seventh pass) | Handover audit: corrected stale statements (hook installed, e2e in CI, stale server restarted, PLAN status resolved by ADR-0012, verification record), recorded B-008 and B-009, and refreshed the current state. | Committed with this pass. Human decisions open: B-004, B-005, B-008, B-009. |
+|| 2026-11-26 | agent (Claude, session with the user) | Fixed the two failing export tests and made the export deterministic: file contents no longer carry a timestamp, the response does, and `replayed` is `false` because the export regenerates. Test corrected to compare the log before and after and to drop the impossible self-listing in the checksum file. Gitignored `data/durability/`. Recorded the watchdog and export in TODO and CHANGELOG. | Typecheck clean; 167 of 167 tests pass. Watchdog and export are uncommitted, awaiting approval. |
+|| 2026-11-21 | agent:8f3a1c2b | Built and verified the P2 durability watchdog: six-probes module (`packages/services/src/watchdog.ts`), a `durability.watchdog_status` capability that returns healthy/degraded/critical with the version triple, a background process in `apps/server/src/main.ts`, and a sidecar JSONL beacon. Verified: `npm run check` clean (typecheck, 164 tests, build), plus an end-to-end POST over the live HTTP API returning status healthy with six probes and the version triple. Open: reference-hardware measurements still outstanding. | Not committed (found 2026-11-26: git shows the files untracked). |
+|| 2026-11-02 | agent (6d7b425e, seventh pass) | Handover audit: corrected stale statements (hook installed, e2e in CI, stale server restarted, PLAN status resolved by ADR-0012, verification record), recorded B-008 and B-009, and refreshed the current state. | Committed with this pass. Human decisions open: B-004, B-005, B-008, B-009. |
 | 2026-11-02 | agent (6d7b425e, sixth pass) | ADR-0013 accepted by the owner and built: the 3D module is prefetched when idle and held in state, and a hidden scene compiles the shaders in idle time. First open cut from 398 ms to 84 to 104 ms (three runs), at the 100 ms gate. Docs brought up to date. | First-open gate at the line, not reliably under it. |
 | 2026-11-01 | agent (6d7b425e, fifth pass) | Offline archive refused with a message, and refused while changes wait; Web Lock around the drain; persistent storage requested; two-tab and offline-archive browser tests. Hosted CI for 5dcfdac, 61be4ab and 2934993 is green. `npm run ci:full` passes. | Lock not shown to be needed; see Known issues. |
 | 2026-11-01 | agent (6d7b425e, fourth pass) | Added Playwright end-to-end tests (`npm run e2e`): J1, J5, feedback and the offline shell. Typecheck now covers the tests. | Superseded by later passes. |

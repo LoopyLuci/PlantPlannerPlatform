@@ -9,6 +9,7 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 - A hidden scene compiles the 3D shaders in idle time after the module loads (`warmUpScene`, `PlantScene.warmUp`), so the first open does not wait for them. It runs at once if the person is already on the 3D view.
 
 ### Added
+- `design.export_planting_plan`: writes one design as a planting plan into a directory (`placements.csv`, `placements.geojson`, `design.json`, `README.md`) with `checksums.sha256`. Output is byte-identical on re-run, and the design log is not modified. Tests in `packages/services/test/export-planting-plan.test.ts`.
 - "Export waiting changes" saves the outbox as a JSON file while changes wait to sync, so they can be kept if this browser's data is lost. Browser test in `e2e/offline.spec.ts`.
 - Plan-to-3D timing (`e2e/perf/plan-to-3d.spec.ts`, `npm run perf:3d`): a keyboard move in the plan, saved, then the 3D view opened. Warm open 61 to 68 ms; the first open took 394 ms before the module was prefetched and the shaders compiled in idle time, and 84 to 104 ms after. Results go to `test-results/perf-plan-to-3d.json`.
 - 3D render timing for the 100 ms gate: the scene update plus the next frame is written to the stage's `data-render-ms` attribute, and `npm run perf:3d` reports it as `sceneRenderMs` (60 to 66 ms at 200 plants in headless Chromium).
@@ -24,7 +25,13 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 - Plant-library search timing in `e2e/perf/search-timing.spec.ts`.
 - Species profiles are cached on this device when they load, so a species opened online can be added offline.
 - Offline outbox (ADR-0011): placement moves, adds and removes made while the server is unreachable are kept in IndexedDB, shown at once, and sent in order with their idempotency keys when the server returns. A refused change is shown as a conflict with a discard action. The last copy of each design, its checks and the species list are cached for an offline start. Unit tests in `apps/web/test/outbox.test.ts`; the journey test is in `e2e/offline.spec.ts`.
-- ADR-0011 (Accepted): offline writes through a browser outbox with idempotent replay and conflicts surfaced to a human (J3).
+- The durability watchdog (P2): a background process with six probes
+  (data-log chain integrity, torn-tail detection, snapshot consistency, event-loop
+  lag, memory RSS, self heartbeat). It classifies the platform as healthy,
+  degraded, or critical, returns a graduated advisory-action list, and reports
+  to a sidecar JSONL plus an optional external beacon. It never repairs data and
+  never applies a human decision. Full details: `packages/services/src/watchdog.ts`,
+  capability `durability.watchdog_status`, runbook `docs/runbooks/durability-incident.md`.
 - CI job `e2e`: installs Chromium with Playwright and runs `npm run e2e` on Ubuntu, Node 24; uploads traces on failure.
 - End-to-end tests with Playwright (`npm run e2e`, which builds the web app first): journeys J1 (place, correct by keyboard, reload) and J5 (search, profile), the feedback journey, and the offline shell (J3, shell only). They run against a server on port 4411 with a fresh scratch data directory. Set `PPP_E2E_CHANNEL=msedge` (or `chrome`) to use an installed browser. Typecheck covers the tests.
 - Feedback on verdicts: `feedback.record` and `feedback.list` capabilities, a hash-chained feedback log, a pure router to four suggested routes, and a form in Plant details (ADR-0007).

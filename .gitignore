@@ -8,6 +8,7 @@ playwright-report/
 # Runtime design logs, snapshots and feedback are local state, not source.
 data/designs/
 data/feedback/
+data/durability/
 *.torn-*.txt
 *.tmp-*
 

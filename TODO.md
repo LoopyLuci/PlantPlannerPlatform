@@ -28,9 +28,14 @@ Priority: `P0` blocks the current phase gate · `P1` next · `P2` scheduled · `
 - [~] `P2` 3D perspective and side-elevation windows (Phase 1; ADR-0009). Built: perspective view with drag-to-move through the same write as the plan, side elevation, and a side-by-side fallback without WebGL. Measured with `npm run perf:3d` in headless Chromium on this machine (not reference hardware): 200 plants held 60 fps while the camera orbited (worst frame 16.8 ms, 180 frames sampled); a plan-edit write takes a median of 12 ms to acknowledge. A plan edit followed by opening the 3D view: the first open is 84 to 104 ms (three runs), down from 398 ms, after holding the prefetched module in state and compiling the shaders in idle time (ADR-0013). Later opens are 61 to 68 ms. It is at the 100 ms gate, not reliably under it, so the gate is not yet shown on reference hardware (`e2e/perf/plan-to-3d.spec.ts`). The render part of the 100 ms gate is measured: the scene update plus one frame at 200 plants takes 60 to 66 ms in headless Chromium (`sceneRenderMs`; four runs on this Windows machine, last 65.6 ms). The write takes 12 to 14 ms and the fetch is not measured, so the full gate is not shown. Not done: frame time on reference hardware, labels in 3D, distance-based LOD.
 - [ ] `P2` Variant generation: CP-SAT or annealing over region constraints, returning Pareto-diverse layouts (Phase 3).
 - [ ] `P2` Design Brief: typed goals, objective weights and biome context, editable and inspectable.
-- [ ] `P2` Durability watchdog as a running process: six probes, tri-state classification, graduated remediation, external beacon (see docs/runbooks/durability-incident.md). Only the one-shot check exists today.
+- [~] `P2` Durability watchdog as a running process: six probes (chain integrity,
+  torn tail, snapshot consistency, event-loop lag, memory RSS, self heartbeat),
+  tri-state classification, graduated advisory remediation, external beacon. Built
+  as a capability `durability.watchdog_status` and a background process in the
+  server; zero design-log writes, zero auto-remediation of human decisions.
+  Built and tested (2026-11-26) but not yet committed.
 - [ ] `P2` ACP command pack under `agent/commands/` (plan-bed, review-placement, audit-design) with human gates.
-- [ ] `P2` Export: plain-text planting plan (CSV, GeoJSON), then PDF. The archive has per-design CSV and GeoJSON; a planting-plan export is not built.
+- [~] `P2` Export: plain-text planting plan. Built: `design.export_planting_plan` writes per-design CSV, GeoJSON, README and `checksums.sha256` into a directory, with byte-identical output on re-run and no design-log writes (`packages/services/test/export-planting-plan.test.ts`). Not done: PDF, and a decision on whether the export belongs in the archive.
 - [ ] `P2` Structure and rainwater: manual footprints and roof outlines first, then roof-plane recognition.
 
 ## P3: later
