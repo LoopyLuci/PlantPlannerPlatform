@@ -1,5 +1,11 @@
 package org.plantplanner.survey
 
+import android.content.ActivityNotFoundException
+import android.content.ClipData
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
@@ -14,17 +20,23 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import org.plantplanner.survey.feedback.DeviceInfo
+import org.plantplanner.survey.feedback.FeedbackKind
+import org.plantplanner.survey.feedback.FeedbackStore
 import org.plantplanner.survey.model.Site
 import org.plantplanner.survey.model.SiteStore
+import org.plantplanner.survey.ui.FeedbackScreen
 import org.plantplanner.survey.ui.SiteScreen
 import org.plantplanner.survey.ui.SitesScreen
 import org.plantplanner.survey.ui.UpdateController
 import org.plantplanner.survey.ui.UpdatePromptDialog
 import org.plantplanner.survey.ui.UpdatesScreen
+import org.plantplanner.survey.ui.appVersionName
 import org.plantplanner.survey.update.UpdatePrefs
 import org.plantplanner.survey.update.UpdateService
 import java.io.File
@@ -62,10 +74,13 @@ private sealed interface Screen {
     data object Sites : Screen
     data class Survey(val siteId: String) : Screen
     data object Updates : Screen
+    data class Feedback(val kind: FeedbackKind) : Screen
 }
 
 @Composable
 private fun SurveyApp(store: SiteStore, updates: UpdateController) {
+    val context = LocalContext.current
+    val feedbackStore = remember { FeedbackStore(context) }
     var screen by remember { mutableStateOf<Screen>(Screen.Sites) }
     // Bumped after every save so the open site and the list reload from disk.
     var revision by remember { mutableIntStateOf(0) }
@@ -89,6 +104,7 @@ private fun SurveyApp(store: SiteStore, updates: UpdateController) {
                 screen = Screen.Survey(site.id)
             },
             onUpdates = { screen = Screen.Updates },
+            onFeedback = { screen = Screen.Feedback(FeedbackKind.FEATURE) },
         )
         is Screen.Survey -> {
             val site = remember(s.siteId, revision) { store.load(s.siteId) }
@@ -111,7 +127,36 @@ private fun SurveyApp(store: SiteStore, updates: UpdateController) {
             }
         }
         Screen.Updates -> UpdatesScreen(controller = updates, onBack = { screen = Screen.Sites })
+        is Screen.Feedback -> FeedbackScreen(
+            initialKind = s.kind,
+            device = deviceInfo(context),
+            repo = BuildConfig.GITHUB_REPO,
+            store = feedbackStore,
+            onBack = { screen = Screen.Sites },
+            onOpenUrl = { context.openInBrowser(it) },
+            onCopy = { context.copyToClipboard(it) },
+        )
     }
 
     UpdatePromptDialog(updates)
+}
+
+private fun deviceInfo(context: Context) = DeviceInfo(
+    appVersion = appVersionName(context),
+    androidRelease = Build.VERSION.RELEASE,
+    sdkInt = Build.VERSION.SDK_INT,
+    model = "${Build.MANUFACTURER} ${Build.MODEL}".trim(),
+)
+
+/** Opens [url] in a browser. Returns false when no app can open it. */
+private fun Context.openInBrowser(url: String): Boolean = try {
+    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+    true
+} catch (_: ActivityNotFoundException) {
+    false
+}
+
+private fun Context.copyToClipboard(text: String) {
+    val clipboard = getSystemService(android.content.ClipboardManager::class.java)
+    clipboard?.setPrimaryClip(ClipData.newPlainText("Plant Survey feedback", text))
 }

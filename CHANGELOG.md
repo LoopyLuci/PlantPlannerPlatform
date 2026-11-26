@@ -9,6 +9,8 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 - A hidden scene compiles the 3D shaders in idle time after the module loads (`warmUpScene`, `PlantScene.warmUp`), so the first open does not wait for them. It runs at once if the person is already on the 3D view.
 
 ### Added
+- Android: Feedback screen for feature requests and bug reports. The report is filled in on a GitHub new-issue page (labels `enhancement` or `bug`, plus `from-app`); the person presses Submit there, so the app holds no GitHub token. Drafts are kept per kind on the phone, and a list of reports opened is shown. Copy text is the fallback. Tests in `apps/android/app/src/test/.../feedback`.
+- Android: side view under the plan, with each point's height against its distance along the survey. Points without a height sit on the ground as hollow markers. Tests in `ElevationGeometryTest`.
 - Android 0.1.2: touch plan editor. Tap a point to select it, drag a point to move it (its distance and bearing are recomputed, and so are the next point's), drag the background to pan, pinch to zoom, Fit to reset. A north arrow and scale bar are drawn.
 
 ### Fixed

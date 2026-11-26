@@ -57,6 +57,7 @@ fun SitesScreen(
     onOpen: (String) -> Unit,
     onCreate: (String) -> Unit,
     onUpdates: () -> Unit,
+    onFeedback: () -> Unit,
 ) {
     var naming by remember { mutableStateOf(false) }
     var name by remember { mutableStateOf("") }
@@ -65,7 +66,10 @@ fun SitesScreen(
         topBar = {
             TopAppBar(
                 title = { Text("Plant Survey") },
-                actions = { TextButton(onClick = onUpdates) { Text("Updates") } },
+                actions = {
+                    TextButton(onClick = onFeedback) { Text("Feedback") }
+                    TextButton(onClick = onUpdates) { Text("Updates") }
+                },
             )
         },
     ) { padding ->
@@ -244,6 +248,16 @@ fun SiteScreen(
                 )
             }
             moveError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
+
+            if (site.points.size >= 2) {
+                Text("Side view", style = MaterialTheme.typography.titleSmall)
+                ElevationView(points = site.points)
+                Text(
+                    "Across the survey from the origin, and height above the origin's ground. " +
+                        "Hollow points have no height and sit on the ground.",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
 
             Text("Add a point", style = MaterialTheme.typography.titleMedium)
             Text(
