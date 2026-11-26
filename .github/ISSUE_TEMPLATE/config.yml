@@ -1,4 +1,7 @@
-blank_issues_enabled: false
+# Blank issues stay enabled on purpose: the Android app's Feedback screen opens
+# /issues/new with a prefilled title, body and labels. With blank issues off,
+# GitHub sends that link to the template chooser and the prefill is lost.
+blank_issues_enabled: true
 contact_links:
   - name: Security problem
     url: https://github.com/LoopyLuci/PlantPlannerPlatform/security/advisories/new

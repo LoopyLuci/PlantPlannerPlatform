@@ -9,6 +9,7 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 - A hidden scene compiles the 3D shaders in idle time after the module loads (`warmUpScene`, `PlantScene.warmUp`), so the first open does not wait for them. It runs at once if the person is already on the 3D view.
 
 ### Added
+- Issue triage runbook (`docs/runbooks/issue-triage.md`): labels, severity mapping, and the steps from an app report to the work queue.
 - Android: Feedback screen for feature requests and bug reports. The report is filled in on a GitHub new-issue page (labels `enhancement` or `bug`, plus `from-app`); the person presses Submit there, so the app holds no GitHub token. Drafts are kept per kind on the phone, and a list of reports opened is shown. Copy text is the fallback. Tests in `apps/android/app/src/test/.../feedback`.
 - Android: side view under the plan, with each point's height against its distance along the survey. Points without a height sit on the ground as hollow markers. Tests in `ElevationGeometryTest`.
 - Android 0.1.2: touch plan editor. Tap a point to select it, drag a point to move it (its distance and bearing are recomputed, and so are the next point's), drag the background to pan, pinch to zoom, Fit to reset. A north arrow and scale bar are drawn.
@@ -72,6 +73,7 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 - The main web bundle no longer includes three.js. The 3D window is fetched when it is first opened.
 
 ### Fixed
+- Issue templates: `blank_issues_enabled` is now `true`, so the Android Feedback link opens a prefilled new issue rather than the template chooser, which drops the prefill.
 - Archiving while offline failed without a message. It now says the design was not archived, and archiving waits until queued changes have synced, since the server copy is behind the local view.
 - Two tabs could both drain the same queue. Each drain now takes a Web Lock, so one tab sends at a time; a tab that finds the lock held skips the round. The browser test passes with and without the lock, because idempotency keys already make a duplicate send harmless. The lock avoids the duplicate requests.
 - The browser is asked to keep this origin's storage (`navigator.storage.persist`), so queued changes are less likely to be evicted under storage pressure. Clearing site data by hand still removes the queue.
