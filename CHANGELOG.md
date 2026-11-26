@@ -8,6 +8,9 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 - The 3D view's module is prefetched when the app is idle, after the first design loads (ADR-0013), and held in state instead of a `React.lazy` component. Skipped on data-saver and 2G connections. The first 3D open fell from about 398 ms to 84 to 104 ms in headless Chromium, which is at the 100 ms gate but not reliably under it (see HANDOVER).
 - A hidden scene compiles the 3D shaders in idle time after the module loads (`warmUpScene`, `PlantScene.warmUp`), so the first open does not wait for them. It runs at once if the person is already on the 3D view.
 
+### Fixed
+- Android 0.1.1: a saved `.sitescan` kept its name. Saving with a zip MIME type made Android add `.zip` (`x.sitescan.zip`).
+
 ### Added
 - Android survey app 0.1.0 (`apps/android`): offline sites, points by distance and bearing with heights, plan view, area and perimeter, `.sitescan` export saved to Downloads or shared, and a self-updater (Manual by default; Download only; Download and install) that reads GitHub releases tagged `android-v<version>` and shows installed and available versions. Unit tests in `apps/android/app/src/test`.
 - `design.export_planting_plan`: writes one design as a planting plan into a directory (`placements.csv`, `placements.geojson`, `design.json`, `README.md`) with `checksums.sha256`. Output is byte-identical on re-run, and the design log is not modified. Tests in `packages/services/test/export-planting-plan.test.ts`.

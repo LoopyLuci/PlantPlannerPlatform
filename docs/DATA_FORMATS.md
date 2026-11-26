@@ -177,7 +177,7 @@ start-up, and a bad file stops start-up. Results carry `version` as `ruleConfigV
 ## 10. Android survey: `site.json` (`plantplanner.site/1`) and `.sitescan` archive
 
 Written by the Android app (`apps/android`). The phone keeps each site as `files/sites/<id>.json`. Exports are
-zip archives named `<name>-<id8>.sitescan`, with MIME type `application/zip`.
+zip archives named `<name>-<id8>.sitescan`, with MIME type `application/octet-stream` (a zip MIME type makes Android add `.zip` to the name).
 
 `site.json`:
 

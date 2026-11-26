@@ -19,7 +19,11 @@ import java.util.zip.ZipOutputStream
  */
 object SiteScanExport {
     const val FORMAT = "plantplanner.sitescan/1"
-    const val MIME_TYPE = "application/zip"
+    /**
+     * Octet-stream, not application/zip: MediaStore appends ".zip" to any name saved with a zip MIME
+     * type, which would turn "x.sitescan" into "x.sitescan.zip".
+     */
+    const val MIME_TYPE = "application/octet-stream"
     const val EXTENSION = "sitescan"
 
     /** A file name that is safe on Android and Windows, for example "Front-garden-1a2b3c4d.sitescan". */
