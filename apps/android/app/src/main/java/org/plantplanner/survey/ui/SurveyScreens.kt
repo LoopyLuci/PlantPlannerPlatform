@@ -1,6 +1,5 @@
 package org.plantplanner.survey.ui
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -35,9 +34,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
@@ -51,8 +48,6 @@ import org.plantplanner.survey.model.SurveyException
 import org.plantplanner.survey.model.Survey
 import org.plantplanner.survey.model.SurveyPoint
 import java.util.UUID
-import kotlin.math.max
-import kotlin.math.min
 
 /** The list of sites, with a box to start a new one. */
 @OptIn(ExperimentalMaterial3Api::class)
@@ -148,6 +143,9 @@ fun SiteScreen(
     var error by remember(site.id) { mutableStateOf<String?>(null) }
     var exportMessage by remember(site.id) { mutableStateOf<String?>(null) }
     var confirmDelete by remember(site.id) { mutableStateOf(false) }
+    var selectedIndex by remember(site.id) { mutableStateOf<Int?>(null) }
+    var moveError by remember(site.id) { mutableStateOf<String?>(null) }
+    val selected = selectedIndex?.takeIf { it < site.points.size }
 
     val isOrigin = site.points.isEmpty()
     val heights = Survey.heightRangeM(site.points)
@@ -220,12 +218,32 @@ fun SiteScreen(
                 style = MaterialTheme.typography.bodySmall,
             )
 
-            PlanCanvas(
+            PlanEditor(
                 points = site.points,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(240.dp),
+                selectedIndex = selected,
+                onSelect = { selectedIndex = it },
+                onMoveEnd = { index, x, y ->
+                    val moved = Survey.moveTo(site.points, index, x, y)
+                    if (moved == null) {
+                        moveError = "That move would put this point on top of its neighbour, or it is the origin."
+                    } else {
+                        moveError = null
+                        onSave(site.copy(points = moved))
+                    }
+                },
             )
+            Text(
+                "Tap a point to select it. Drag a point to move it. Drag the background to pan, pinch to zoom. The origin is fixed.",
+                style = MaterialTheme.typography.bodySmall,
+            )
+            selected?.let { i ->
+                val p = site.points[i]
+                Text(
+                    "Selected: ${i + 1}. ${p.label}" + if (i == 0) " (origin, fixed)" else "",
+                    style = MaterialTheme.typography.bodyMedium,
+                )
+            }
+            moveError?.let { Text(it, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
 
             Text("Add a point", style = MaterialTheme.typography.titleMedium)
             Text(
@@ -284,7 +302,9 @@ fun SiteScreen(
 
             if (site.points.isNotEmpty()) {
                 Text("Points", style = MaterialTheme.typography.titleMedium)
-                site.points.forEachIndexed { index, p -> PointRow(index, p) }
+                site.points.forEachIndexed { index, p ->
+                    PointRow(index, p, selected = index == selected, onClick = { selectedIndex = index })
+                }
                 OutlinedButton(
                     onClick = { onSave(site.copy(points = site.points.dropLast(1))) },
                     modifier = Modifier.fillMaxWidth(),
@@ -359,7 +379,7 @@ fun SiteScreen(
 }
 
 @Composable
-private fun PointRow(index: Int, p: SurveyPoint) {
+private fun PointRow(index: Int, p: SurveyPoint, selected: Boolean, onClick: () -> Unit) {
     val details = buildString {
         if (p.distanceM != null && p.bearingDeg != null) {
             append("${"%.2f".format(p.distanceM)} m at ${"%.0f".format(p.bearingDeg)}°")
@@ -368,48 +388,19 @@ private fun PointRow(index: Int, p: SurveyPoint) {
         }
         p.heightM?.let { append(" · height ${"%.2f".format(it)} m") }
     }
-    Column(Modifier.fillMaxWidth()) {
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .background(if (selected) MaterialTheme.colorScheme.secondaryContainer else Color.Transparent)
+            .clickable(onClick = onClick)
+            .padding(6.dp),
+    ) {
         Text("${index + 1}. ${p.label}", style = MaterialTheme.typography.bodyMedium)
         Text(
             "$details · x ${"%.2f".format(p.x)}, y ${"%.2f".format(p.y)} m" +
                 if (p.note.isNotEmpty()) " · ${p.note}" else "",
             style = MaterialTheme.typography.bodySmall,
         )
-    }
-}
-
-/** Draws the survey in plan view, north up. The polygon closes once there are three points. */
-@Composable
-fun PlanCanvas(points: List<SurveyPoint>, modifier: Modifier = Modifier) {
-    val lineColor = MaterialTheme.colorScheme.primary
-    val dotColor = MaterialTheme.colorScheme.tertiary
-    val paper = MaterialTheme.colorScheme.surfaceVariant
-    Canvas(modifier.background(paper)) {
-        if (points.isEmpty()) return@Canvas
-        val minX = points.minOf { it.x }
-        val maxX = points.maxOf { it.x }
-        val minY = points.minOf { it.y }
-        val maxY = points.maxOf { it.y }
-        val spanX = max(maxX - minX, 1.0)
-        val spanY = max(maxY - minY, 1.0)
-        val pad = 28f
-        val scale = min((size.width - 2 * pad) / spanX.toFloat(), (size.height - 2 * pad) / spanY.toFloat())
-        fun at(p: SurveyPoint) = Offset(
-            pad + ((p.x - minX) * scale).toFloat(),
-            size.height - pad - ((p.y - minY) * scale).toFloat(),
-        )
-
-        val path = Path()
-        points.forEachIndexed { i, p ->
-            val o = at(p)
-            if (i == 0) path.moveTo(o.x, o.y) else path.lineTo(o.x, o.y)
-        }
-        if (points.size >= 3) {
-            path.close()
-            drawPath(path, color = lineColor.copy(alpha = 0.15f))
-        }
-        drawPath(path, color = lineColor, style = Stroke(width = 4f))
-        points.forEach { drawCircle(color = dotColor, radius = 8f, center = at(it)) }
     }
 }
 

@@ -2,6 +2,7 @@ package org.plantplanner.survey.model
 
 import kotlin.math.PI
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.hypot
 import kotlin.math.sin
@@ -38,6 +39,46 @@ data class Site(
 class SurveyException(message: String) : IllegalArgumentException(message)
 
 object Survey {
+
+    /** The shortest gap allowed between two neighbouring points, in metres. A zero-length measurement is not valid. */
+    const val MIN_SEGMENT_M = 0.05
+
+    /**
+     * Moves the point at [index] to ([x], [y]) and recomputes the distance and bearing of that point
+     * and of the one after it, so each stored measurement still matches the coordinates. The origin
+     * (index 0) cannot move, because every other coordinate is measured from it. Returns null when
+     * the move is not allowed, for example onto a neighbour.
+     */
+    fun moveTo(points: List<SurveyPoint>, index: Int, x: Double, y: Double): List<SurveyPoint>? {
+        if (index < 1 || index >= points.size || !x.isFinite() || !y.isFinite()) return null
+        val prev = points[index - 1]
+        val gapBefore = hypot(x - prev.x, y - prev.y)
+        if (gapBefore < MIN_SEGMENT_M) return null
+        val moved = points.toMutableList()
+        moved[index] = points[index].copy(
+            x = x,
+            y = y,
+            distanceM = gapBefore,
+            bearingDeg = bearingDeg(prev.x, prev.y, x, y),
+        )
+        if (index + 1 < points.size) {
+            val next = points[index + 1]
+            val gapAfter = hypot(next.x - x, next.y - y)
+            if (gapAfter < MIN_SEGMENT_M) return null
+            moved[index + 1] = next.copy(
+                distanceM = gapAfter,
+                bearingDeg = bearingDeg(x, y, next.x, next.y),
+            )
+        }
+        return moved
+    }
+
+    /** Bearing from north, clockwise, in [0, 360), from one point to another. Matches [nextPoint]. */
+    private fun bearingDeg(fromX: Double, fromY: Double, toX: Double, toY: Double): Double {
+        var degrees = Math.toDegrees(atan2(toX - fromX, toY - fromY))
+        if (degrees < 0.0) degrees += 360.0
+        return degrees
+    }
 
     /**
      * Returns the point that follows the site's last point. For an empty site it returns the origin
