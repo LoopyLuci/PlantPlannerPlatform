@@ -9,6 +9,7 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 - A hidden scene compiles the 3D shaders in idle time after the module loads (`warmUpScene`, `PlantScene.warmUp`), so the first open does not wait for them. It runs at once if the person is already on the 3D view.
 
 ### Added
+- Android survey app 0.1.0 (`apps/android`): offline sites, points by distance and bearing with heights, plan view, area and perimeter, `.sitescan` export saved to Downloads or shared, and a self-updater (Manual by default; Download only; Download and install) that reads GitHub releases tagged `android-v<version>` and shows installed and available versions. Unit tests in `apps/android/app/src/test`.
 - `design.export_planting_plan`: writes one design as a planting plan into a directory (`placements.csv`, `placements.geojson`, `design.json`, `README.md`) with `checksums.sha256`. Output is byte-identical on re-run, and the design log is not modified. Tests in `packages/services/test/export-planting-plan.test.ts`.
 - "Export waiting changes" saves the outbox as a JSON file while changes wait to sync, so they can be kept if this browser's data is lost. Browser test in `e2e/offline.spec.ts`.
 - Plan-to-3D timing (`e2e/perf/plan-to-3d.spec.ts`, `npm run perf:3d`): a keyboard move in the plan, saved, then the 3D view opened. Warm open 61 to 68 ms; the first open took 394 ms before the module was prefetched and the shaders compiled in idle time, and 84 to 104 ms after. Results go to `test-results/perf-plan-to-3d.json`.

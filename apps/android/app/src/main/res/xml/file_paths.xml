@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<paths>
+    <!-- Files shared through the share sheet (exports). -->
+    <cache-path name="share" path="share/" />
+    <!-- Downloaded update packages, handed to the installer. -->
+    <files-path name="updates" path="updates/" />
+</paths>

@@ -174,6 +174,44 @@ A torn final line is quarantined to `data/feedback/feedback.torn-<ms>-<id>.txt` 
 `version` must match `rules-<major>.<minor>`. Every other field must be a positive number. The file is read at
 start-up, and a bad file stops start-up. Results carry `version` as `ruleConfigVersion`. See ADR-0008.
 
+## 10. Android survey: `site.json` (`plantplanner.site/1`) and `.sitescan` archive
+
+Written by the Android app (`apps/android`). The phone keeps each site as `files/sites/<id>.json`. Exports are
+zip archives named `<name>-<id8>.sitescan`, with MIME type `application/zip`.
+
+`site.json`:
+
+```json
+{
+  "schema": "plantplanner.site/1",
+  "id": "uuid",
+  "name": "Front garden",
+  "createdAt": "2026-11-26T10:00:00Z",
+  "points": [
+    {"id": "p1", "label": "Corner", "x": 0.0, "y": 0.0, "distanceM": null, "bearingDeg": null, "heightM": 1.2, "note": ""},
+    {"id": "p2", "label": "Gate", "x": 4.0, "y": 0.0, "distanceM": 4.0, "bearingDeg": 90.0, "heightM": null, "note": ""}
+  ]
+}
+```
+
+- The first point is the origin: `distanceM` and `bearingDeg` are null, and `x`, `y` are 0.
+- Each later point is placed from the previous one: `x = prev.x + d·sin(bearing)`, `y = prev.y + d·cos(bearing)`,
+  with the bearing measured clockwise from north, in metres east (`x`) and north (`y`).
+- `heightM` is metres above the origin's ground level, or null.
+
+`.sitescan` entries (in this order):
+
+| Entry | Content |
+|---|---|
+| `manifest.json` | `format` (`plantplanner.sitescan/1`), `appVersion`, `exportedAt`, `siteId`, `siteName`, `pointCount`, `areaM2`, `perimeterM`, and for each other entry `sha256` and `bytes` |
+| `site.json` | The survey, as above |
+| `points.csv` | Header `label,x_m,y_m,distance_m,bearing_deg,height_m,note`; one row per point; fields with commas or quotes are quoted |
+| `README.txt` | Plain-language description of the files |
+
+File contents carry no timestamp, so the same survey always exports the same bytes. The export time is in
+`manifest.json` only. A reader must check every entry's SHA-256 against the manifest. The format is plain text
+and open, so it can be read without this project (invariant I10).
+
 ## Migration rules
 
 | From | To | Rule |

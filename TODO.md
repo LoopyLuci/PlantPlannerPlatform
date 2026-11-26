@@ -22,6 +22,8 @@ Priority: `P0` blocks the current phase gate · `P1` next · `P2` scheduled · `
 - [x] `P1` Add a `LICENSE` file (Apache-2.0) and `data/knowledge-graph/LICENSE` (CC-BY-4.0). Done with B-002.
 - [~] `P1` Rule config as data: thresholds in `config/rules/rules-1.0.json`, validated at start-up (ADR-0008). The dual-evaluation swap is not built.
 
+- [~] `P1` Android survey app (`apps/android`), MVP for device testing: offline sites, survey points, `.sitescan` export, self-updater. Version 0.1.0 is built, unit-tested (22 tests), and tested on the Redmi Note 12 Pro 5G over wireless debugging. Not done: ARCore measurement and depth capture, a public release key, and automated updater tests on the device.
+
 ## P2: scheduled
 
 - [ ] `P2` Authentication, roles and the gateway policy layer across all four interfaces (single principal model).
