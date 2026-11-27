@@ -34,6 +34,8 @@ data class Site(
     /** ISO-8601 UTC instant, for example 2026-11-26T10:00:00Z. */
     val createdAt: String,
     val points: List<SurveyPoint>,
+    /** Plants from an imported planting plan. Empty until one is imported. */
+    val plants: List<PlantPlacement> = emptyList(),
 )
 
 class SurveyException(message: String) : IllegalArgumentException(message)

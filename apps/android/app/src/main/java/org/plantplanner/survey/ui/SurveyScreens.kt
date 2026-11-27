@@ -2,6 +2,8 @@ package org.plantplanner.survey.ui
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -43,6 +45,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.plantplanner.survey.export.AndroidExport
 import org.plantplanner.survey.export.SiteScanExport
+import org.plantplanner.survey.model.PlacementsCsv
 import org.plantplanner.survey.model.Site
 import org.plantplanner.survey.model.SurveyException
 import org.plantplanner.survey.model.Survey
@@ -136,9 +139,34 @@ fun SiteScreen(
     onSave: (Site) -> Unit,
     onBack: () -> Unit,
     onDelete: () -> Unit,
+    onOpen3D: () -> Unit,
+    onOpenAr: () -> Unit,
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
+    var plantMessage by remember(site.id) { mutableStateOf<String?>(null) }
+    val importPlan = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        if (uri != null) {
+            scope.launch {
+                plantMessage = try {
+                    val text = withContext(Dispatchers.IO) {
+                        context.contentResolver.openInputStream(uri)?.use { input ->
+                            val bytes = input.readBytes()
+                            if (bytes.size > MAX_PLAN_BYTES) throw SurveyException("That file is too large to be a planting plan")
+                            bytes.toString(Charsets.UTF_8)
+                        } ?: throw SurveyException("Could not open the file")
+                    }
+                    val plants = PlacementsCsv.parse(text)
+                    onSave(site.copy(plants = plants))
+                    "Imported ${plants.size} plants. Their positions are in metres from the plan origin."
+                } catch (e: SurveyException) {
+                    e.message
+                } catch (e: Exception) {
+                    "Could not read that file: ${e.message ?: "unknown error"}"
+                }
+            }
+        }
+    }
     var label by remember(site.id) { mutableStateOf("") }
     var distance by remember(site.id) { mutableStateOf("") }
     var bearing by remember(site.id) { mutableStateOf("") }
@@ -258,6 +286,39 @@ fun SiteScreen(
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
+
+            Text("Plants and 3D", style = MaterialTheme.typography.titleMedium)
+            Text(
+                if (site.plants.isEmpty()) {
+                    "No plants yet. Import placements.csv, the file design.export_planting_plan writes on the desktop."
+                } else {
+                    "${site.plants.size} plants imported. The 3D view draws each one as a placeholder canopy sized from its planned footprint."
+                },
+                style = MaterialTheme.typography.bodySmall,
+            )
+            OutlinedButton(
+                onClick = { importPlan.launch(PLAN_MIME_TYPES) },
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text("Import planting plan (CSV)") }
+            plantMessage?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
+            if (site.plants.isNotEmpty()) {
+                OutlinedButton(
+                    onClick = {
+                        onSave(site.copy(plants = emptyList()))
+                        plantMessage = "Removed the imported plants. Points are kept."
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                ) { Text("Remove imported plants") }
+            }
+            Button(
+                onClick = onOpen3D,
+                enabled = site.points.isNotEmpty() || site.plants.isNotEmpty(),
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text("View in 3D") }
+            OutlinedButton(
+                onClick = onOpenAr,
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text("Capture points with AR") }
 
             Text("Add a point", style = MaterialTheme.typography.titleMedium)
             Text(
@@ -418,7 +479,11 @@ private fun PointRow(index: Int, p: SurveyPoint, selected: Boolean, onClick: () 
     }
 }
 
-private fun nowIso(): String = java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).toString()
+/** A planting plan is a CSV. Some file managers label it as plain text or Excel, so those are accepted too. */
+private val PLAN_MIME_TYPES = arrayOf("text/csv", "text/comma-separated-values", "text/plain", "application/vnd.ms-excel", "*/*")
+private const val MAX_PLAN_BYTES = 5 * 1024 * 1024
+
+private fun nowIso(): String =java.time.Instant.now().truncatedTo(java.time.temporal.ChronoUnit.SECONDS).toString()
 
 internal fun appVersionName(context: android.content.Context): String =
     try {

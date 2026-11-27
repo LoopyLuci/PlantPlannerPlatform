@@ -30,7 +30,9 @@ import org.plantplanner.survey.feedback.FeedbackKind
 import org.plantplanner.survey.feedback.FeedbackStore
 import org.plantplanner.survey.model.Site
 import org.plantplanner.survey.model.SiteStore
+import org.plantplanner.survey.ui.ArCaptureScreen
 import org.plantplanner.survey.ui.FeedbackScreen
+import org.plantplanner.survey.ui.PlantScene3D
 import org.plantplanner.survey.ui.SiteScreen
 import org.plantplanner.survey.ui.SitesScreen
 import org.plantplanner.survey.ui.UpdateController
@@ -73,6 +75,8 @@ class MainActivity : ComponentActivity() {
 private sealed interface Screen {
     data object Sites : Screen
     data class Survey(val siteId: String) : Screen
+    data class Scene3D(val siteId: String) : Screen
+    data class ArCapture(val siteId: String) : Screen
     data object Updates : Screen
     data class Feedback(val kind: FeedbackKind) : Screen
 }
@@ -123,9 +127,24 @@ private fun SurveyApp(store: SiteStore, updates: UpdateController) {
                         revision++
                         screen = Screen.Sites
                     },
+                    onOpen3D = { screen = Screen.Scene3D(site.id) },
+                    onOpenAr = { screen = Screen.ArCapture(site.id) },
                 )
             }
         }
+        is Screen.Scene3D -> store.load(s.siteId)?.let { site ->
+            PlantScene3D(site = site, onBack = { screen = Screen.Survey(site.id) })
+        } ?: run { screen = Screen.Sites }
+        is Screen.ArCapture -> store.load(s.siteId)?.let { site ->
+            ArCaptureScreen(
+                site = site,
+                onSave = { updated ->
+                    store.save(updated)
+                    revision++
+                },
+                onBack = { screen = Screen.Survey(site.id) },
+            )
+        } ?: run { screen = Screen.Sites }
         Screen.Updates -> UpdatesScreen(controller = updates, onBack = { screen = Screen.Sites })
         is Screen.Feedback -> FeedbackScreen(
             initialKind = s.kind,

@@ -13,6 +13,8 @@ object SiteJson {
         put("name", site.name)
         put("createdAt", site.createdAt)
         put("points", JSONArray().apply { site.points.forEach { put(pointToJson(it)) } })
+        // Optional: files written before plant import have no "plants" key.
+        put("plants", JSONArray().apply { site.plants.forEach { put(plantToJson(it)) } })
     }
 
     fun fromJson(text: String): Site {
@@ -22,13 +24,39 @@ object SiteJson {
         }
         val array = root.getJSONArray("points")
         val points = (0 until array.length()).map { pointFromJson(array.getJSONObject(it)) }
+        val plantArray = root.optJSONArray("plants")
+        val plants = if (plantArray == null) emptyList() else
+            (0 until plantArray.length()).map { plantFromJson(plantArray.getJSONObject(it)) }
         return Site(
             id = root.getString("id"),
             name = root.getString("name"),
             createdAt = root.getString("createdAt"),
             points = points,
+            plants = plants,
         )
     }
+
+    private fun plantToJson(p: PlantPlacement): JSONObject = JSONObject().apply {
+        put("id", p.id)
+        put("speciesUrn", p.speciesUrn)
+        put("commonName", p.commonName)
+        put("scientificName", p.scientificName)
+        put("xM", p.xM)
+        put("yM", p.yM)
+        put("footprintM", p.footprintM)
+        put("pinned", p.pinned)
+    }
+
+    private fun plantFromJson(o: JSONObject): PlantPlacement = PlantPlacement(
+        id = o.getString("id"),
+        speciesUrn = o.optString("speciesUrn", ""),
+        commonName = o.optString("commonName", ""),
+        scientificName = o.optString("scientificName", ""),
+        xM = o.getDouble("xM"),
+        yM = o.getDouble("yM"),
+        footprintM = o.getDouble("footprintM"),
+        pinned = o.optBoolean("pinned", false),
+    )
 
     private fun pointToJson(p: SurveyPoint): JSONObject = JSONObject().apply {
         put("id", p.id)

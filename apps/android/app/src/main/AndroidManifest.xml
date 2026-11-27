@@ -5,12 +5,21 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Needed to hand a downloaded update to the system installer. -->
     <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <!-- AR capture only: the camera is used to see the floor. The app works without it. -->
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.ar" android:required="false" />
 
     <application
         android:allowBackup="false"
         android:label="Plant Survey"
         android:supportsRtl="true"
         android:theme="@android:style/Theme.Material.Light.NoActionBar">
+
+        <!-- ARCore is optional: the 3D view and survey work without it; AR capture reports that it is unavailable. -->
+        <meta-data
+            android:name="com.google.ar.core"
+            android:value="optional" />
 
         <activity
             android:name=".MainActivity"

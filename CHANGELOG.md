@@ -9,6 +9,9 @@ All notable changes. Format: [Keep a Changelog](https://keepachangelog.com/). Ve
 - A hidden scene compiles the 3D shaders in idle time after the module loads (`warmUpScene`, `PlantScene.warmUp`), so the first open does not wait for them. It runs at once if the person is already on the 3D view.
 
 ### Added
+- Android: native 3D view of a site (SceneView 4.18.0, Filament). Shows the ground, a placeholder canopy per imported plant sized from its footprint, and a marker at each survey point. Orbit with drag and pinch. Plants are drawn up to 800.
+- Android: plant import from `placements.csv` (the file `design.export_planting_plan` writes), picked with the system file picker. Imported plants are stored in the site file and can be removed without touching the points. Tests in `PlacementsCsvTest` and `SiteJsonPlantsTest`.
+- Android: AR capture. Tap the floor to place points with ARCore; the first tap is the origin and heights are measured up from its ground. North is the heading the phone had when AR started, not a compass bearing. Tests in `ArCaptureTest`.
 - Issue triage runbook (`docs/runbooks/issue-triage.md`): labels, severity mapping, and the steps from an app report to the work queue.
 - Android: Feedback screen for feature requests and bug reports. The report is filled in on a GitHub new-issue page (labels `enhancement` or `bug`, plus `from-app`); the person presses Submit there, so the app holds no GitHub token. Drafts are kept per kind on the phone, and a list of reports opened is shown. Copy text is the fallback. Tests in `apps/android/app/src/test/.../feedback`.
 - Android: side view under the plan, with each point's height against its distance along the survey. Points without a height sit on the ground as hollow markers. Tests in `ElevationGeometryTest`.

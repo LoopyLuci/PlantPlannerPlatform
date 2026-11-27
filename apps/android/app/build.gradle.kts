@@ -9,7 +9,7 @@ val appVersionCode: Int = project.property("appVersionCode").toString().toInt()
 
 android {
     namespace = "org.plantplanner.survey"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "org.plantplanner.survey"
@@ -51,6 +51,8 @@ dependencies {
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
     implementation(libs.kotlinx.coroutines.android)
+    implementation(libs.sceneview)
+    implementation(libs.arsceneview)
 
     testImplementation(libs.junit)
     testImplementation(libs.org.json)

@@ -1,6 +1,7 @@
 [versions]
 agp = "8.9.1"
-kotlin = "2.1.20"
+kotlin = "2.2.21"
+sceneview = "4.18.0"
 coreKtx = "1.16.0"
 activityCompose = "1.10.1"
 composeBom = "2025.06.00"
@@ -9,6 +10,8 @@ junit = "4.13.2"
 orgJson = "20240303"
 
 [libraries]
+sceneview = { group = "io.github.sceneview", name = "sceneview", version.ref = "sceneview" }
+arsceneview = { group = "io.github.sceneview", name = "arsceneview", version.ref = "sceneview" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }
 androidx-compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "composeBom" }
